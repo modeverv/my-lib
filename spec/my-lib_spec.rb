@@ -7,7 +7,7 @@ describe "MyLib" do
 
   it "success" do
     ####################################################
-    machine = MyMachineAnisoku.new
+    machine = MyMachineAnisoku.new(:savepath => "/Users/seijiro/Desktop/video")
     machine.setup
 #    machine.go
   end

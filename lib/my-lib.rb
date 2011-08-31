@@ -1,6 +1,7 @@
-#-*-coding:utf-8-*-
+#-*- coding:utf-8 -*-
 
 # make String Colored
+require 'rubygems'
 require 'term/ansicolor'
 class String
   include Term::ANSIColor
