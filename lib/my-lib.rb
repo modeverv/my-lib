@@ -313,9 +313,10 @@ consume too much memory!!!!
   
 end
 
+#
 # Module of Machine
-#   this class has queue of jobs
-#   controll jobs and run jobs
+#
+# this class has queue of jobs.controll jobs and run jobs
 module MyMachine
   attr_accessor :queue
 
@@ -349,9 +350,9 @@ module MyMachine
 
 end
 
-#
-# Class of Machine by EventMachine
-#   this class controll jobs for Anisoku
+# 
+# Class of Machine by EventMachine.
+# this class controll jobs for Anisoku
 # @example
 #   machine = MyMachineAnisoku.new("YourVideoSaveDir")
 #   machine.setup
@@ -359,15 +360,16 @@ end
 #
 class MyMachineAnisoku
   include MyMachine
+  # directory of save video files default "#{ENV['HOME']}/Desktop/video"
   attr_accessor :savedir
 
   # set video save dir
   # @param [Hash] args
   # @option args [String] :savedir save dir
-  #                        default "${ENV['HOME']}/Desktop/video"
+  #                        default "#{ENV['HOME']}/Desktop/video"
   def initialize(args={ })
     super()
-    args[:savedir] ||= "${ENV['HOME']}/Desktop/video"
+    args[:savedir] ||= "#{ENV['HOME']}/Desktop/video"
     @savedir = args[:savedir]
     begin
       Dir::mkdir(@savedir, 0777)
@@ -380,7 +382,7 @@ class MyMachineAnisoku
     @gaman = 0
   end
 
-  # macine go!!
+  # machine go to run eventmachine
   def go
     EM.run do
       EM.add_periodic_timer(0.00001) do
