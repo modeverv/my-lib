@@ -14,6 +14,8 @@ end
 #   MyLogger.lw("message")
 class MyLogger
 
+  Version = "0.0.1"    
+
   # log notice
   # @param [String] message message for log
   def self.ln(message)
@@ -61,6 +63,8 @@ end
 #     job.run
 #   
 class MyJobAnisoku
+
+  Version = "0.0.1"    
 
   def initialize(args = { })
     require 'rubygems'
@@ -318,6 +322,9 @@ end
 #
 # this class has queue of jobs.controll jobs and run jobs
 module MyMachine
+
+  Version = "0.0.1"    
+
   attr_accessor :queue
 
   def initialize
@@ -360,9 +367,12 @@ end
 #
 class MyMachineAnisoku
   include MyMachine
+
+  Version = "0.0.1"    
+
   # directory of save video files default "#{ENV['HOME']}/Desktop/video"
   attr_accessor :savedir
-
+  
   # set video save dir
   # @param [Hash] args
   # @option args [String] :savedir save dir
@@ -387,7 +397,10 @@ class MyMachineAnisoku
     EM.run do
       EM.add_periodic_timer(0.00001) do
 #        print "loop".green
-        EM.stop if should_stop_machine?
+        if should_stop_machine?        
+          finalize_files
+          EM.stop
+        end
         @queue.pop.run unless @queue.empty?
       end
     end
@@ -395,6 +408,20 @@ class MyMachineAnisoku
   end
 
   private
+
+  # delete tiny fail files
+  def finalize_files
+    delete_entries = []
+    Dir.entries(@savedir).select!{ |entry|
+      !File.directory?(entry) &&
+          File.size("#{ @savedir }/#{entry}") < 1024 * 1024 * 2      
+    }.each do |entry|
+#       p File.size("#{ @savedir }/#{entry}")
+#       p ("#{@savedir }/#{entry}")
+       File.delete("#{@savedir }/#{entry}")
+    end
+  end
+
 
   # setup jobs
   def setupjobs
@@ -408,6 +435,8 @@ class MyMachineAnisoku
   def should_stop_machine?
     @gaman += 1 if @queue.empty?
     print @gaman
-    return @queue.empty? && @gaman > 500
+    return @queue.empty? && @gaman > 1500
   end
 end
+
+
