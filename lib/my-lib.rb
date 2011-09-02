@@ -27,7 +27,7 @@ class MyLogger
   # log warning
   # @param [String] message message for log
   def self.lw(message)
-    self.before
+    self.beventmachine_3000to3050_600_600_100.csvefore
     Syslog.log(Syslog::LOG_WARNING, "%s", message)
     self.after
   end
@@ -88,7 +88,7 @@ class MyJobAnisoku
       targs << link.uri
     end
     targs.each_with_index do |link,i|
-      break if i > 6
+      break if i > 0
       job = MyJobAnisoku.new(
         :url => link,
         :status => :second,
@@ -120,15 +120,90 @@ class MyJobAnisoku
   end
 
   #access say-move and make video job
-  def third
-    #sm has title and url
-    sm = { :title => @a[:title],:url => @a[:url]}
-    @agent.get(sm[:url])
-    set =  @agent.page/"/html/body/div/div[2]/div[7]/div[2]/input/@value"
-    if set[0]
-      sm[:videourl] = set[0].value 
+  def kobetu
+    @agent.get @a[:url]
+    nodeset = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]"
+    limit = 5
+    titles = []
+    urls = []
+
+    # acume title
+    _titles  = nodeset[0].inner_text.gsub('　','').gsub(' ','').
+      gsub('「Daum」|','').
+      gsub('【Yahoo!】','').
+      gsub('veoh','').
+      gsub('SM|','').
+      gsub('|','').
+      split("\r\n").
+      select{|e| $1 if e=~/(第.*話)/ }.
+      map{|k| k =~ /(第(\d{1,2}).*)/; { :episode => $2, :title => $1} }
+    _titles.reverse!
+
+    _tt = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
+
+    _titles.each_with_index do|title,i|
+      break if i > limit
+      titles << _tt + title[:title].to_s
     end
 
+    # acume url
+    nodeset_vs = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]/a/@href"
+    _dd = []
+
+    nodeset_vs.each do |va|
+      _dd << $1  if va.value =~ /(http:\/\/say-move\.org\/comeplay\.php.*)/
+    end
+    _dd.reverse!
+
+    #hard coding for adjust fetch limit
+    _dd.each_with_index do |url,i|
+      break if i > limit
+      urls << url
+    end
+    
+    titles.each_with_index do |tit,i|
+      job = MyJobAnisoku.new(
+        :url => urls[i],
+        :title => tit,
+        :status => :third,
+        :machine => @a[:machine]
+        )
+      @a[:machine].retry job
+    end
+  end
+
+  #access say-move and make video job
+  def third
+    #sm has title and url
+# debug   @a[:url] = "http://say-move.org/comeplay.php?comeid=217953"
+
+    sm = { :title => @a[:title],:url => @a[:url]}
+
+    @agent.get(sm[:url])
+#http://say-move.org/comeplay.php?comeid=217953
+    set =  @agent.page/"/html/body/div/div[2]/div[7]/div[2]/input/@value"
+p set.empty?
+    if !set.empty?
+      puts "Set is Setted"
+      sm[:videourl] = set[0].value 
+    else
+puts "No Set[0]".red.bold
+      set =  @agent.page/"/html/body/div/div[2]/div[3]/object/param[5]/@value"
+      fc2 = set[0].value.split('&')[1].split('=')[1]
+      unless fc2.nil?
+        job = MyJobAnisoku.new(
+          :url => sm[:url],
+          :fc2 => fc2,
+          :title => sm[:title],
+          :status => :fc2,
+          :machine => @a[:machine]
+          )
+        @a[:machine].retry job
+        return
+      else
+      end
+    end
+    
     job = MyJobAnisoku.new(
       :url => sm[:videourl],
       :title => sm[:title],
@@ -138,101 +213,27 @@ class MyJobAnisoku
      @a[:machine].retry job
   end
 
-  #access say-move and make video job
-  def kobetu
-    @agent.get @a[:url]
-    nodeset = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]"
-        begin
-    titles  = nodeset[0].inner_text.gsub('　','').gsub(' ','').
-            gsub('「Daum」|','').
-            gsub('【Yahoo!】','').
-            gsub('veoh','').
-            gsub('SM|','').
-            gsub('|','').
-            split("\r\n").
-      select{|e| $1 if e=~/(第.*)/ }.
-      map{|k| k =~ /(第(\d{1,2}).*)/; { :episode => $2, :title => $1} }
-    titles.reverse!
-    
-    
-    _tt = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
+  def fc2
+    require 'digest'
+    #md5
+    url = "http://video.fc2.com/ginfo.php?mimi=#{Digest::MD5.hexdigest(@a[:fc2] + '_gGddgPfeaf_gzyr')}&v=#{@a[:fc2]}&upid=#{@a[:fc2]}&otag=1"
+    puts url.red.bold
 
-    #hard coding for adjust fetch limit
-    title  = _tt + titles.shift[:title].to_s
-    title2 = _tt + titles.shift[:title].to_s
-    title3 = _tt + titles.shift[:title].to_s
-    title4 = _tt + titles.shift[:title].to_s
-    title5 = _tt + titles.shift[:title].to_s
-          
-    rescue => ex
-      p ex
-      return
-    end
-    nodeset_vs =  @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]/a/@href"
-    _dd = []
-    nodeset_vs.each do |va|
-      _dd << $1  if va.value =~ /(http:\/\/say-move\.org\/comeplay\.php.*)/
-    end
-    _dd.reverse!
+    url = `curl "#{url}"`
 
-    #hard coding for adjust fetch limit
-    url  = _dd.shift
-    url2 = _dd.shift
-    url3 = _dd.shift
-    url4 = _dd.shift
-    url5 = _dd.shift
+    #http://vip.cvideocache2.fc2.com/videocache/up/flv/201109/02/7/201109027QbdHqqX.flv&mid=6f275f1b3cfe85fb5bed6f9012764f2d
+    #http://vip.cvideocache2.fc2.com/videocache/up/flv/201109/02/7/201109027QbdHqqX.flv?mid=6e3d9cefb86826a1a65b0c3a7ae5ff19
+    puts url
 
-    #hard coding for adjust fetch limit
-    unless url.nil?
-      job = MyJobAnisoku.new(
-        :url => url,
-        :title => title,
-        :status => :third,
-        :machine => @a[:machine]
-        )
-      @a[:machine].retry job
-    end
-    
-    unless url2.nil?
-      job = MyJobAnisoku.new(
-        :url => url2,
-        :title => title2,
-        :status => :third,
-        :machine => @a[:machine]
-        )
-      @a[:machine].retry job
-    end
+    url =  url.split('&')[0].split('=')[1] + '?' + url.split('&')[1]
 
-    unless url3.nil?
-      job = MyJobAnisoku.new(
-        :url => url3,
-        :title => title3,
-        :status => :third,
-        :machine => @a[:machine]
-        )
-      @a[:machine].retry job
-    end
-
-    unless url4.nil?
-      job = MyJobAnisoku.new(
-        :url => url4,
-        :title => title4,
-        :status => :third,
-        :machine => @a[:machine]
-        )
-      @a[:machine].retry job
-    end
-
-    unless url5.nil?
-      job = MyJobAnisoku.new(
-        :url => url5,
-        :title => title5,
-        :status => :third,
-        :machine => @a[:machine]
-        )
-      @a[:machine].retry job
-    end
-    
+    job = MyJobAnisoku.new(
+      :url => url,
+      :title => @a[:title],
+      :status => :video,
+      :machine => @a[:machine]
+      )
+     @a[:machine].retry job
   end
 
   #fetch video
@@ -242,59 +243,18 @@ class MyJobAnisoku
     Dir.chdir savedir
     filename = "#{@a[:title]}.mp4"
     savepath = "#{savedir}/#{filename}"
-
-    puts "Fetching ".green.bold + savepath
-
+    
     if File.exist?(savepath) && File.size(savepath) > 1024 * 1024 * 3
       puts "File Already Saved ".yellow.bold  + savepath
       return
     else
+      puts "Fetching ".green.bold + savepath
       MyLogger.ln "Fetch Attempt Start ".green.bold  + savepath
     end
     # use curl command
-    command = "curl -# -L -R -o '#{filename}' '#{@a[:url].host}#{@a[:url].path}'"
+    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}'"
+    puts command.red.bold
     system command
-=begin
-consume too much memory!!!!
-    begin
-    @http = EventMachine::Protocols::HttpClient.request(
-      :host => @a[:url].host,
-      :port => @a[:url].port,
-      :request => @a[:url].path
-    )
-    rescue => ex
-      p ex
-      return
-    end
-    
-    @http.callback {|response|
-      if response[:status] == 200
-        puts "# 200".green
-        open(savepath,"wb") do |io|
-          io.write response[:content]
-        end
-        puts "saved:".green.bold + "/Users/seijiro/Desktop/#{@a[:title]}.mp4"
-      elsif response[:status] == 302
-        puts "302".red.bold
-        location = ""
-        response[:headers].each do |elem|
-          p elem
-          location = $1 if elem =~ /Location:\s(.*)/
-        end
-        job = MyJobAnisoku.new(
-          :url => location,
-          :title => @a[:title],
-          :status => :video,
-          :machine => @a[:machine]
-          )
-        @a[:machine].retry job
-      else 
-        puts response[:status].to_s.red.bold
-        puts response[:headers].to_s.red.bold
-#        raise "HTTP Status Error"
-      end
-    }
-=end
   end
 
   # run in thread
@@ -309,6 +269,10 @@ consume too much memory!!!!
         kobetu
       when :third then
         third
+      when :fc2 then
+        fc2
+      when :fc2_wget then
+        fc2_wget
       when :video then
         video
       end
@@ -348,7 +312,7 @@ module MyMachine
   private
 
   def setupjobs
-    puts "You need write the setupjobs method!"
+    puts "You need write the setupjobs method!" 
   end
   
   def setupmachine
@@ -407,21 +371,14 @@ class MyMachineAnisoku
     puts "End of fetch".green.bold
   end
 
-  private
 
-  # delete tiny fail files
+  # delete tiny fail files 
   def finalize_files
-    delete_entries = []
-    Dir.entries(@savedir).select!{ |entry|
-      !File.directory?(entry) &&
-          File.size("#{ @savedir }/#{entry}") < 1024 * 1024 * 2      
-    }.each do |entry|
-#       p File.size("#{ @savedir }/#{entry}")
-#       p ("#{@savedir }/#{entry}")
-       File.delete("#{@savedir }/#{entry}")
-    end
+    command = "find #{@savedir} -size -1000k -type f -print0| xargs -0 rm -v "
+    exec(command)
   end
 
+  private
 
   # setup jobs
   def setupjobs
