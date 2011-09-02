@@ -64,7 +64,7 @@ end
 #   
 class MyJobAnisoku
 
-  Version = "0.0.1"    
+  Version = "0.0.2"    
 
   def initialize(args = { })
     require 'rubygems'
@@ -125,26 +125,6 @@ class MyJobAnisoku
     _tt = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
     limit = 5
     urls = []
-=begin
-    nodeset = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]"
-    titles = []
-    # acume title
-    _titles  = nodeset[0].inner_text.gsub('　','').gsub(' ','').
-      gsub('「Daum」|','').
-      gsub('【Yahoo!】','').
-      gsub('veoh','').
-      gsub('SM|','').
-      gsub('|','').
-      split("\r\n").
-      select{|e| $1 if e=~/(第.*話)/ }.
-      map{|k| k =~ /(第(\d{1,2}).*)/; { :episode => $2, :title => $1} }
-    _titles.reverse!
-
-    _titles.each_with_index do|title,i|
-      break if i > limit
-      titles << _tt + title[:title].to_s
-    end
-=end
     # acume url
     nodeset_vs = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]/a/@href"
     _dd = []
@@ -176,7 +156,7 @@ class MyJobAnisoku
     #sm has title and url
 
     sm = { :title => @a[:title],:url => @a[:url]}
-# debug sm[:url] = "http://say-move.org/comeplay.php?comeid=217953"
+    # debug fc2 video sm[:url] = "http://say-move.org/comeplay.php?comeid=217953"
     @agent.get(sm[:url])
     sm[:title] += @agent.page.title.gsub!('FC2 SayMove!','') 
     set =  @agent.page/"/html/body/div/div[2]/div[7]/div[2]/input/@value"
@@ -210,11 +190,10 @@ class MyJobAnisoku
 
   def fc2
     require 'digest'
-    #md5
+    # make md5 with magicword '_gGddgPfeaf_gzyr'
     url = "http://video.fc2.com/ginfo.php?mimi=#{Digest::MD5.hexdigest(@a[:fc2] + '_gGddgPfeaf_gzyr')}&v=#{@a[:fc2]}&upid=#{@a[:fc2]}&otag=1"
     url = `curl -# -L -R "#{url}"`
     url =  url.split('&')[0].split('=')[1] + '?' + url.split('&')[1]
-#    url.gsub!('vip.cvideocache2.fc2.com/videocache','video32.fc2.com')
     puts url.red.bold
     job = MyJobAnisoku.new(
       :url => url,
@@ -232,7 +211,7 @@ class MyJobAnisoku
     Dir.chdir savedir
     filename = "#{@a[:title]}.mp4"
     savepath = "#{savedir}/#{filename}"
-    
+    # check fetch candidate had been already saved?
     if File.exist?(savepath) && File.size(savepath) > 1024 * 1024 * 3
       puts "File Already Saved ".yellow.bold  + savepath
       return
@@ -242,7 +221,7 @@ class MyJobAnisoku
     end
     
     # use curl command
-    # no need UA?
+    # no need UA...
     #    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' --user-agent 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:9.0a1) Gecko/20110901 Firefox/9.0a1'"
     command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' "
 
@@ -264,8 +243,6 @@ class MyJobAnisoku
         third
       when :fc2 then
         fc2
-      when :fc2_wget then
-        fc2_wget
       when :video then
         video
       end
