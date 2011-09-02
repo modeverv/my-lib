@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{my-lib}
-  s.version = "0.0.1.1"
+  s.version = "0.0.1.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{modeverv}]
-  s.date = %q{2011-09-01}
+  s.date = %q{2011-09-02}
   s.description = %q{longer description of your gem}
   s.email = %q{modeverv@gmail.com}
   s.extra_rdoc_files = [
@@ -24,13 +24,23 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "README.rdoc",
     "Rakefile",
+    "TAGS",
     "VERSION",
-    "lib/dev.rb",
+    "lib/1.rb",
+    "lib/lib/anisoku.rb",
+    "lib/lib/job.rb",
+    "lib/lib/machine.rb",
+    "lib/lib/myat.rb",
+    "lib/lib/myconfig.rb",
+    "lib/lib/mydb.rb",
+    "lib/lib/mygcal.rb",
+    "lib/lib/mylogger.rb",
+    "lib/lib/myobject.rb",
+    "lib/lib/mypusher.rb",
+    "lib/lib/runpersec.rb",
     "lib/my-lib.rb",
-    "lib/opt-parse.rb",
     "my-lib.gemspec",
     "spec/my-lib_spec.rb",
-    "spec/opt-parse_spec.rb",
     "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://github.com/modeverv/my-lib}
@@ -51,6 +61,8 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<bundler>, ["> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, [">= 0"])
       s.add_development_dependency(%q<rcov>, [">= 0"])
+      s.add_development_dependency(%q<guard>, [">= 0"])
+      s.add_development_dependency(%q<guard-spork>, [">= 0"])
     else
       s.add_dependency(%q<term-ansicolor>, [">= 0"])
       s.add_dependency(%q<eventmachine>, [">= 0"])
@@ -60,6 +72,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bundler>, ["> 1.0.0"])
       s.add_dependency(%q<jeweler>, [">= 0"])
       s.add_dependency(%q<rcov>, [">= 0"])
+      s.add_dependency(%q<guard>, [">= 0"])
+      s.add_dependency(%q<guard-spork>, [">= 0"])
     end
   else
     s.add_dependency(%q<term-ansicolor>, [">= 0"])
@@ -70,6 +84,8 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bundler>, ["> 1.0.0"])
     s.add_dependency(%q<jeweler>, [">= 0"])
     s.add_dependency(%q<rcov>, [">= 0"])
+    s.add_dependency(%q<guard>, [">= 0"])
+    s.add_dependency(%q<guard-spork>, [">= 0"])
   end
 end
 
