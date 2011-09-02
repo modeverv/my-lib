@@ -49,3 +49,5 @@ pkg
 
 # For Test
 lib-test.rb
+1.rb
+dev.rb
