@@ -17,3 +17,27 @@ describe "MyLib" do
     MyLogger.lw "warn"
   end
 end
+
+
+describe "MyLogger" do
+
+  it "log should success" do
+    MyLogger.ln("nihogno")
+    MyLogger.lw("nihogno")
+  end
+  
+end
+
+describe "MyConfig" do
+  it "get should be success" do
+    MyConfig.get
+  end
+
+  it "set config file failue" do
+    proc { 
+    MyConfig.dispose
+    MyConfig.set "aaaaaaaaaaa.yml"
+    p MyConfig.get
+    }.should raise_error
+  end
+end
