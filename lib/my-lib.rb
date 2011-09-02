@@ -88,7 +88,7 @@ class MyJobAnisoku
       targs << link.uri
     end
     targs.each_with_index do |link,i|
-      break if i > 0
+      break if i > 6
       job = MyJobAnisoku.new(
         :url => link,
         :status => :second,
@@ -175,19 +175,14 @@ class MyJobAnisoku
   #access say-move and make video job
   def third
     #sm has title and url
-# debug   @a[:url] = "http://say-move.org/comeplay.php?comeid=217953"
 
     sm = { :title => @a[:title],:url => @a[:url]}
-
+# debug sm[:url] = "http://say-move.org/comeplay.php?comeid=217953"
     @agent.get(sm[:url])
-#http://say-move.org/comeplay.php?comeid=217953
     set =  @agent.page/"/html/body/div/div[2]/div[7]/div[2]/input/@value"
-p set.empty?
     if !set.empty?
-      puts "Set is Setted"
       sm[:videourl] = set[0].value 
     else
-puts "No Set[0]".red.bold
       set =  @agent.page/"/html/body/div/div[2]/div[3]/object/param[5]/@value"
       fc2 = set[0].value.split('&')[1].split('=')[1]
       unless fc2.nil?
@@ -217,16 +212,10 @@ puts "No Set[0]".red.bold
     require 'digest'
     #md5
     url = "http://video.fc2.com/ginfo.php?mimi=#{Digest::MD5.hexdigest(@a[:fc2] + '_gGddgPfeaf_gzyr')}&v=#{@a[:fc2]}&upid=#{@a[:fc2]}&otag=1"
-    puts url.red.bold
-
-    url = `curl "#{url}"`
-
-    #http://vip.cvideocache2.fc2.com/videocache/up/flv/201109/02/7/201109027QbdHqqX.flv&mid=6f275f1b3cfe85fb5bed6f9012764f2d
-    #http://vip.cvideocache2.fc2.com/videocache/up/flv/201109/02/7/201109027QbdHqqX.flv?mid=6e3d9cefb86826a1a65b0c3a7ae5ff19
-    puts url
-
+    url = `curl -# -L -R "#{url}"`
     url =  url.split('&')[0].split('=')[1] + '?' + url.split('&')[1]
-
+#    url.gsub!('vip.cvideocache2.fc2.com/videocache','video32.fc2.com')
+    puts url.red.bold
     job = MyJobAnisoku.new(
       :url => url,
       :title => @a[:title],
@@ -251,9 +240,12 @@ puts "No Set[0]".red.bold
       puts "Fetching ".green.bold + savepath
       MyLogger.ln "Fetch Attempt Start ".green.bold  + savepath
     end
+    
     # use curl command
-    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}'"
-    puts command.red.bold
+    # noneed UA
+    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' --user-agent 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:9.0a1) Gecko/20110901 Firefox/9.0a1'"
+    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' "
+    p command
     system command
   end
 
@@ -343,7 +335,7 @@ class MyMachineAnisoku
   #                        default "#{ENV['HOME']}/Desktop/video"
   def initialize(args={ })
     super()
-    args[:savedir] ||= "#{ENV['HOME']}/Desktop/video"
+    args[:savedir] ||= "#{ENV['HOME']}/Desktop/video2"
     @savedir = args[:savedir]
     begin
       Dir::mkdir(@savedir, 0777)
