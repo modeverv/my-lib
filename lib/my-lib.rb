@@ -164,7 +164,7 @@ class MyJobAnisoku
     titles.each_with_index do |tit,i|
       job = MyJobAnisoku.new(
         :url => urls[i],
-        :title => tit,
+        :title => _tt,
         :status => :third,
         :machine => @a[:machine]
         )
@@ -179,6 +179,7 @@ class MyJobAnisoku
     sm = { :title => @a[:title],:url => @a[:url]}
 # debug sm[:url] = "http://say-move.org/comeplay.php?comeid=217953"
     @agent.get(sm[:url])
+    sm[:title] += @agent.page.title
     set =  @agent.page/"/html/body/div/div[2]/div[7]/div[2]/input/@value"
     if !set.empty?
       sm[:videourl] = set[0].value 
