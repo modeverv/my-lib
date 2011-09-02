@@ -20,8 +20,6 @@
 
 class MyJobAnisoku
 
-  Version = "0.0.2"    
-
   def initialize(args = { })
     require 'rubygems'
     require 'kconv'

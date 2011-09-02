@@ -210,3 +210,133 @@ class MyJobAnisoku
   end
   
 end
+
+
+class MyJobDojin
+
+  def initialize(args = { })
+    require 'net/http'
+    @args = args
+
+    #sample http://1patu.net/data/20591/preview/000.jpg
+    @args[:path]   = "/data/#{@args[:book].to_s}/preview/" +
+                     sprintf("%0#{3}d", @args[:page]) + ".jpg"
+    @args[:cookie] ||= { 'Cookie' => '1patu_view=1'}
+    @args[:status] = :new
+    @args[:try]    = 0
+
+    @args[:savedir] ||= "/Users/seijiro/Downloads/jpg"
+    @args[:savebookdir] = "#{@args[:savedir].to_s}/#{@args[:book].to_s}"
+    checkdir
+    @args[:savepath] = "#{@args[:savebookdir]}/" +
+                       sprintf("%0#{3}d", @args[:page]) + ".jpg"
+    @machine = @args[:machine]
+
+    #debug
+    @args[:debug]  ||= false
+    @args[:savepath] = '/dev/null' if @args[:debug]
+  end
+
+  def run
+    do_connect
+  end
+
+  private
+  
+  def do_connect
+    puts "Do Connect".green
+    return if @machine.bookended?(@args[:book])
+    return if file_already_saved?
+    
+    Net::HTTP.start(@args[:server]) do |http|
+      response = http.get(@args[:path],@args[:cookie])
+
+      case response
+      when Net::HTTPSuccess     then
+        save_content(response.body)
+      when Net::HTTPClientError     then
+        @machine.bookend(@args[:book])
+      when Net::HTTPServerError     then
+        puts "Net::HTTPSereverError".red
+        Thread.sleep 2
+        @args[:try] += 1
+        if @args[:try] < 6
+          @machine.retry(self)
+        else
+        end
+      when Net::HTTPRedirection then
+        puts "Net::HTTPRedirection"
+      else
+        puts (response.error!).red.bold
+      end        
+    end
+  end
+  
+  def save_content(content)
+    open(@args[:savepath],"wb") do |io|
+      io.write(content)
+    end
+    print "fetched:".green.bold + @args[:path]
+  end
+
+  # ダウンロード保存先を作る
+  def checkdir
+    begin
+      Dir::mkdir(@args[:savebookdir], 0777)
+    rescue => ex
+#      warn ex
+    end
+  end
+
+  def file_already_saved?
+    File.exist?(@args[:savepath]) && FileTest.size(@args[:savepath]) > 0
+  end
+  
+end
+
+
+# for EventMachine
+class MyJobDojinEventMachine < MyJobDojin
+  
+  private
+  
+  def do_connect
+    return if @machine.bookended?(@args[:book])
+    return if file_already_saved?
+
+    if @machine.connection_exceed? #コネクション限界を超えていないか？
+      @machine.retry(self)
+      return
+    end
+
+    @machine.connection_count!
+
+    @http = EventMachine::Protocols::HttpClient.request(
+      :host => @args[:server],
+      :port => @args[:port],
+      :request => @args[:path],
+      :cookie => @args[:cookie]['Cookie']
+    )
+
+    @http.callback {|response|
+      @machine.connection_end!
+      if response[:status] == 200
+        # 200 はレスポンスの中身を保存する
+        save_content(response[:content])
+      elsif response[:status] == 503 ||
+            response[:status] == 500 ||
+            response[:status] == 403
+        # 503/500/403はリトライする
+        @args[:try] += 1
+        @machine.retry(self) if @args[:try] < 6
+      elsif response[:status] == 404
+        # 404は終了する
+        @machine.bookend(@args[:book])
+      else 
+        puts response[:status].to_s.red.bold
+        puts response[:headers].to_s.red.bold
+      end
+    }
+  end
+end
+

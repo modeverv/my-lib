@@ -28,6 +28,8 @@ require 'lib/myobject.rb'
 require 'lib/myconfig.rb'
 # MyLogger
 require 'lib/mylogger.rb'
+# Job
+require 'lib/job'
 # MyMachine
 require 'lib/machine.rb'
 # MyJobAnisoku
