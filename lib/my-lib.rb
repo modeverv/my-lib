@@ -81,6 +81,7 @@ class MyJobAnisoku
 
   # check kousin page
   def tokkakari
+    print "Tokkakari".yellow
     @agent.get @a[:url]
     links_kousins = @agent.page.links_with(:text => /#{"更新状況".toutf8}/)
     targs = []
@@ -96,10 +97,12 @@ class MyJobAnisoku
         )
       @a[:machine].retry job
     end
+    
   end
 
   # check shoukai page
   def second
+    print "Second".yellow
     @agent.get @a[:url]
     links_kousin =  @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/ul/li/a/@href"
     # links_kobetu 
@@ -121,6 +124,7 @@ class MyJobAnisoku
 
   #access say-move and make video job
   def kobetu
+    print "Kobetu".yellow
     @agent.get @a[:url]
     _tt = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
     limit = 5
@@ -153,6 +157,7 @@ class MyJobAnisoku
 
   #access say-move and make video job
   def third
+    print "Third".yellow
     #sm has title and url
 
     sm = { :title => @a[:title],:url => @a[:url]}
@@ -189,6 +194,7 @@ class MyJobAnisoku
   end
 
   def fc2
+    print "fc2".yellow
     require 'digest'
     # make md5 with magicword '_gGddgPfeaf_gzyr'
     url = "http://video.fc2.com/ginfo.php?mimi=#{Digest::MD5.hexdigest(@a[:fc2] + '_gGddgPfeaf_gzyr')}&v=#{@a[:fc2]}&upid=#{@a[:fc2]}&otag=1"
@@ -206,6 +212,7 @@ class MyJobAnisoku
 
   #fetch video
   def video
+    print "video".yellow
     # save video directory is supplied by machine.
     savedir = @a[:machine].savedir
     Dir.chdir savedir
