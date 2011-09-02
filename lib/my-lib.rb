@@ -122,11 +122,12 @@ class MyJobAnisoku
   #access say-move and make video job
   def kobetu
     @agent.get @a[:url]
-    nodeset = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]"
+    _tt = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
     limit = 5
-    titles = []
     urls = []
-
+=begin
+    nodeset = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]"
+    titles = []
     # acume title
     _titles  = nodeset[0].inner_text.gsub('　','').gsub(' ','').
       gsub('「Daum」|','').
@@ -139,13 +140,11 @@ class MyJobAnisoku
       map{|k| k =~ /(第(\d{1,2}).*)/; { :episode => $2, :title => $1} }
     _titles.reverse!
 
-    _tt = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
-
     _titles.each_with_index do|title,i|
       break if i > limit
       titles << _tt + title[:title].to_s
     end
-
+=end
     # acume url
     nodeset_vs = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]/a/@href"
     _dd = []
@@ -161,9 +160,9 @@ class MyJobAnisoku
       urls << url
     end
     
-    titles.each_with_index do |tit,i|
+    urls.each_with_index do |url,i|
       job = MyJobAnisoku.new(
-        :url => urls[i],
+        :url => url,
         :title => _tt,
         :status => :third,
         :machine => @a[:machine]
@@ -179,7 +178,7 @@ class MyJobAnisoku
     sm = { :title => @a[:title],:url => @a[:url]}
 # debug sm[:url] = "http://say-move.org/comeplay.php?comeid=217953"
     @agent.get(sm[:url])
-    sm[:title] += @agent.page.title
+    sm[:title] += @agent.page.title.gsub!('FC2 SayMove!','') 
     set =  @agent.page/"/html/body/div/div[2]/div[7]/div[2]/input/@value"
     if !set.empty?
       sm[:videourl] = set[0].value 
@@ -243,9 +242,10 @@ class MyJobAnisoku
     end
     
     # use curl command
-    # noneed UA
-    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' --user-agent 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:9.0a1) Gecko/20110901 Firefox/9.0a1'"
+    # no need UA?
+    #    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' --user-agent 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:9.0a1) Gecko/20110901 Firefox/9.0a1'"
     command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' "
+
     p command
     system command
   end
