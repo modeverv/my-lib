@@ -193,7 +193,7 @@ class MyMachineAnisoku
     @checklist = {}
     @filelist = {}
     @dellist = []
-    require 'pp'
+#    require 'pp'
     make_filelist
     make_dellist
   end
@@ -201,13 +201,16 @@ class MyMachineAnisoku
   def make_filelist
     Dir.new(@savedir).each do |entry|
       if File.file?("#{@savedir}/#{entry}")
-        header = make_header(entry) 
-        filesize = File.size("#{@savedir}/#{entry}")
-        @filelist[header] = [] unless chk_header(header)
-        @filelist[header] << {:size => filesize,:name => "#{@savedir}/#{entry}" }
+        header = make_header(entry)
+        if header
+          filesize = File.size("#{@savedir}/#{entry}")
+          @filelist[header] = [] unless chk_header(header)
+          @filelist[header] << {:size => filesize,
+                                :name => "#{@savedir}/#{entry}" }
+        end
       end
     end
-    pp @filelist
+#    pp @filelist
   end
   
   def chk_header(string) 
@@ -215,28 +218,30 @@ class MyMachineAnisoku
   end    
 
   def make_header(string)
-    header = string.scan(/^.*?\d{1,3}話/).first.gsub(' ','').gsub('　','')
-    p header
+    if string.scan(/^.*?\d{1,3}話/).first
+      header = string.scan(/^.*?\d{1,3}話/).first.gsub(' ','').gsub('　','')
+    end
+#    p header
     return header
   end
 
   def make_dellist
     @filelist.each do |k,v|
-      p k
+#      p k
       max_size = v.map { |e| e[:size] }.max
-      p max_size
+#      p max_size
       v.each do |vv|
         if vv[:size] < max_size || vv[:size] < 1024 * 1024 * 2
           @dellist << vv[:name]
         end
       end
     end
-    pp @dellist
+#    pp @dellist
   end
 
   def del_small_files
     @dellist.each do |e|
-      p e
+#      p e
       File.delete("#{e}")
     end
   end

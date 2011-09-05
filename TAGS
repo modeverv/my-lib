@@ -2,67 +2,62 @@
 (null),18
 def hogehoge2,6
 
-,530
-class MyJobAnisokuMyJobAnisoku21,555
-  def initialize(args = { })initialize25,600
-  def tokkakaritokkakari39,1001
-  def secondsecond60,1484
-  def kobetukobetu82,2073
-  def thirdthird115,2878
-  def fc2fc2152,3906
-  def videovideo170,4466
-  def runrun196,5430
-class MyMachineAnisokuMyMachineAnisoku227,5922
-  def initialize(args={ })initialize239,6248
-  def gogo255,6600
-  def finalize_filesfinalize_files271,6919
-  def setupjobssetupjobs279,7070
-  def should_stop_machine?should_stop_machine?287,7205
-
-wn,0
+lib/lib/dev.rb,0
 
 lib/lib/job.rb,671
 class MyJobAnisokuMyJobAnisoku18,554
   def initialize(args = { })initialize22,599
-  def tokkakaritokkakari36,1000
-  def secondsecond57,1483
-  def kobetukobetu79,2072
-  def thirdthird112,2877
-  def fc2fc2149,3905
-  def videovideo167,4465
-  def runrun193,5429
-class MyDojinJobMyDojinJob215,5741
-  def initialize(args = { })initialize217,5759
-  def runrun241,6500
-  def do_connectdo_connect247,6545
-  def save_content(content)save_content275,7292
-  def checkdircheckdir283,7487
-  def file_already_saved?file_already_saved?291,7603
-class MyDojinJobEventMachine < MyDojinJobMyDojinJobEventMachine299,7736
-  def do_connectdo_connect303,7794
+  def tokkakaritokkakari40,1167
+  def secondsecond61,1648
+  def kobetukobetu83,2229
+  def thirdthird117,3586
+  def fc2fc2154,4592
+  def videovideo170,5064
+  def runrun198,5957
+class MyJobDojinMyJobDojin220,6269
+  def initialize(args = { })initialize222,6287
+  def runrun245,7028
+  def do_connectdo_connect251,7073
+  def save_content(content)save_content280,7852
+  def checkdircheckdir288,8047
+  def file_already_saved?file_already_saved?296,8163
+class MyJobDojinEventMachine < MyJobDojinMyJobDojinEventMachine304,8296
+  def do_connectdo_connect308,8354
 
-,814
-module MyMachineMyMachine6,83
-  def initializeinitialize12,150
-  def setupsetup17,220
-  def gogo22,270
-  def retry(job)retry26,327
-  def setupjobssetupjobs32,382
-  def setupmachinesetupmachine36,456
-module DojinMachineDojinMachine43,539
-  def initialize(args={ })initialize46,580
-  def bookend(booknum)bookend55,746
-  def bookended?(booknum)bookended?59,801
-  def setupjobssetupjobs65,874
-class DojinEventMachine DojinEventMachine82,1210
-  def initialize(args={ })initialize85,1259
-  def gogo94,1450
-  def connection_exceed?connection_exceed?110,1748
-  def connection_count!connection_count!114,1826
-  def connection_end!connection_end!119,1889
-  def setupjobssetupjobs126,1988
-  def setupmachinesetupmachine142,2351
-  def should_stop_machine?should_stop_machine?146,2413
+,1352
+module MyMachineMyMachine7,106
+  def initializeinitialize13,173
+  def setupsetup18,243
+  def gogo23,293
+  def retry(job)retry27,350
+  def setupjobssetupjobs33,405
+  def setupmachinesetupmachine37,479
+module MyMachineDojinMyMachineDojin44,562
+  def initialize(args={ })initialize47,605
+  def bookend(booknum)bookend57,826
+  def bookended?(booknum)bookended?61,881
+  def setupjobssetupjobs67,954
+class MyEventMachineDojinMyEventMachineDojin84,1290
+  def initialize(args={ })initialize87,1342
+  def gogo96,1533
+  def connection_exceed?connection_exceed?116,2038
+  def connection_count!connection_count!120,2116
+  def connection_end!connection_end!125,2179
+  def setupjobssetupjobs132,2278
+  def setupmachinesetupmachine149,2680
+  def should_stop_machine?should_stop_machine?153,2742
+class MyMachineAnisokuMyMachineAnisoku168,3089
+  def initialize(args={ })initialize180,3415
+  def make_filelistmake_filelist201,3841
+  def chk_header(string) chk_header216,4285
+  def make_header(string)make_header220,4344
+  def make_dellistmake_dellist228,4539
+  def del_small_filesdel_small_files242,4829
+  def episode_exists?(key)episode_exists?249,4928
+  def gogo260,5177
+  def finalize_filesfinalize_files276,5488
+  def setupjobssetupjobs285,5659
+  def should_stop_machine?should_stop_machine?293,5794
 
 ,236
 module MyAtModuleMyAtModule18,335
@@ -122,69 +117,64 @@ module RunPerSecModuleRunPerSecModule16,348
   def loop_hook_postloop_hook_post61,1372
   def after_run_loopafter_run_loop65,1476
 
-lib/lib/anisoku.rb,530
-class MyJobAnisokuMyJobAnisoku21,555
-  def initialize(args = { })initialize25,600
-  def tokkakaritokkakari39,1001
-  def secondsecond60,1484
-  def kobetukobetu82,2073
-  def thirdthird115,2878
-  def fc2fc2152,3906
-  def videovideo170,4466
-  def runrun196,5430
-class MyMachineAnisokuMyMachineAnisoku227,5922
-  def initialize(args={ })initialize239,6248
-  def gogo255,6600
-  def finalize_filesfinalize_files271,6919
-  def setupjobssetupjobs279,7070
-  def should_stop_machine?should_stop_machine?287,7205
-
 ,0
 
 lib/lib/job.rb,671
 class MyJobAnisokuMyJobAnisoku18,554
   def initialize(args = { })initialize22,599
-  def tokkakaritokkakari36,1000
-  def secondsecond57,1483
-  def kobetukobetu79,2072
-  def thirdthird112,2877
-  def fc2fc2149,3905
-  def videovideo167,4465
-  def runrun193,5429
-class MyDojinJobMyDojinJob215,5741
-  def initialize(args = { })initialize217,5759
-  def runrun241,6500
-  def do_connectdo_connect247,6545
-  def save_content(content)save_content275,7292
-  def checkdircheckdir283,7487
-  def file_already_saved?file_already_saved?291,7603
-class MyDojinJobEventMachine < MyDojinJobMyDojinJobEventMachine299,7736
-  def do_connectdo_connect303,7794
+  def tokkakaritokkakari40,1167
+  def secondsecond61,1648
+  def kobetukobetu83,2229
+  def thirdthird117,3586
+  def fc2fc2154,4592
+  def videovideo170,5064
+  def runrun198,5957
+class MyJobDojinMyJobDojin220,6269
+  def initialize(args = { })initialize222,6287
+  def runrun245,7028
+  def do_connectdo_connect251,7073
+  def save_content(content)save_content280,7852
+  def checkdircheckdir288,8047
+  def file_already_saved?file_already_saved?296,8163
+class MyJobDojinEventMachine < MyJobDojinMyJobDojinEventMachine304,8296
+  def do_connectdo_connect308,8354
 
-,814
-module MyMachineMyMachine6,83
-  def initializeinitialize12,150
-  def setupsetup17,220
-  def gogo22,270
-  def retry(job)retry26,327
-  def setupjobssetupjobs32,382
-  def setupmachinesetupmachine36,456
-module DojinMachineDojinMachine43,539
-  def initialize(args={ })initialize46,580
-  def bookend(booknum)bookend55,746
-  def bookended?(booknum)bookended?59,801
-  def setupjobssetupjobs65,874
-class DojinEventMachine DojinEventMachine82,1210
-  def initialize(args={ })initialize85,1259
-  def gogo94,1450
-  def connection_exceed?connection_exceed?110,1748
-  def connection_count!connection_count!114,1826
-  def connection_end!connection_end!119,1889
-  def setupjobssetupjobs126,1988
-  def setupmachinesetupmachine142,2351
-  def should_stop_machine?should_stop_machine?146,2413
+,1352
+module MyMachineMyMachine7,106
+  def initializeinitialize13,173
+  def setupsetup18,243
+  def gogo23,293
+  def retry(job)retry27,350
+  def setupjobssetupjobs33,405
+  def setupmachinesetupmachine37,479
+module MyMachineDojinMyMachineDojin44,562
+  def initialize(args={ })initialize47,605
+  def bookend(booknum)bookend57,826
+  def bookended?(booknum)bookended?61,881
+  def setupjobssetupjobs67,954
+class MyEventMachineDojinMyEventMachineDojin84,1290
+  def initialize(args={ })initialize87,1342
+  def gogo96,1533
+  def connection_exceed?connection_exceed?116,2038
+  def connection_count!connection_count!120,2116
+  def connection_end!connection_end!125,2179
+  def setupjobssetupjobs132,2278
+  def setupmachinesetupmachine149,2680
+  def should_stop_machine?should_stop_machine?153,2742
+class MyMachineAnisokuMyMachineAnisoku168,3089
+  def initialize(args={ })initialize180,3415
+  def make_filelistmake_filelist201,3841
+  def chk_header(string) chk_header216,4285
+  def make_header(string)make_header220,4344
+  def make_dellistmake_dellist228,4539
+  def del_small_filesdel_small_files242,4829
+  def episode_exists?(key)episode_exists?249,4928
+  def gogo260,5177
+  def finalize_filesfinalize_files276,5488
+  def setupjobssetupjobs285,5659
+  def should_stop_machine?should_stop_machine?293,5794
 
-n,236
+,236
 module MyAtModuleMyAtModule18,335
   def initializeinitialize19,353
   def gcaljobs_2_atgcaljobs_2_at23,413
@@ -201,7 +191,8 @@ class MyConfigMyConfig3,90
   def self.reloadreload31,532
   def self.disposedispose35,571
 
-n,128
+
+,128
 module MyDBModuleMyDBModule24,474
   def set_my_dbset_my_db32,581
   def insert_DB(key='test_app',value='')insert_DB53,1175
@@ -242,5 +233,5 @@ module RunPerSecModuleRunPerSecModule16,348
   def loop_hook_postloop_hook_post61,1372
   def after_run_loopafter_run_loop65,1476
 
-n,27
+,27
 class StringString21,352

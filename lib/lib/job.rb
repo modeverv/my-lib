@@ -94,7 +94,7 @@ require 'pp'
       break if i >= @a[:limit]
       key = title + html.to_s
       unless @a[:machine].episode_exists?( Digest::MD5.hexdigest(key)  )
-        puts "NOW 2 PROCEED FETCH".green.bold + html[0..20].yellow.bold
+#        puts "NOW 2 PROCEED FETCH".green.bold + html[0..20].yellow.bold
         indi = Nokogiri::HTML.fragment(html).css("a")
         indi.each do |va|
           if va[:href] =~ /(http:\/\/say-move\.org\/comeplay\.php.*)/
@@ -107,7 +107,7 @@ require 'pp'
           end
         end
       else
-        puts "CANCELL FETCH".cyan.bold + html[0..20].yellow.bold
+#        puts "CANCELL FETCH".cyan.bold + html[0..20].yellow.bold
       end
       key = nil
     end
@@ -188,9 +188,9 @@ require 'pp'
     uri = "http://#{@a[:url].host}#{@a[:url].path}"
     uri += "?#{@a[:url].query}" if @a[:url].query
     command = "curl -# -L -R -o '#{filename}' '#{uri}' "
-    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
+#    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
 
-    puts command
+#    puts command
     system command
   end
 
