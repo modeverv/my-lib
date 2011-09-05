@@ -33,7 +33,7 @@ require 'lib/job'
 # MyMachine
 require 'lib/machine.rb'
 # MyJobAnisoku
-require 'lib/anisoku.rb'
+#require 'lib/anisoku.rb'
 # RunPerSecModule
 require 'lib/runpersec.rb'
 # MyDBModule

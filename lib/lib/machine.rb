@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 
 #
 # Module of Machine
@@ -156,3 +157,135 @@ class MyEventMachineDojin
 
 end
 
+# 
+# Class of Machine by EventMachine.
+# this class controll jobs for Anisoku
+# @example
+#   machine = MyMachineAnisoku.new("YourVideoSaveDir")
+#   machine.setup
+#   machine.go
+#
+class MyMachineAnisoku
+  include MyMachine
+
+  Version = "0.0.1"    
+
+  # directory of save video files default "#{ENV['HOME']}/Desktop/video"
+  attr_accessor :savedir
+  
+  # set video save dir
+  # @param [Hash] args
+  # @option args [String] :savedir save dir
+  #                        default "#{ENV['HOME']}/Desktop/video"
+  def initialize(args={ })
+    super()
+    args[:savedir] ||= "#{ENV['HOME']}/Desktop/video"
+    @savedir = args[:savedir]
+    begin
+      Dir::mkdir(@savedir, 0777)
+    rescue => ex
+      warn ex
+    end
+    require 'rubygems'
+    require 'eventmachine'
+    # @gaman controll eventmachine end
+    @gaman = 0
+    @checklist = {}
+    @filelist = {}
+    @dellist = []
+    require 'pp'
+    make_filelist
+    make_dellist
+    del_small_files
+  end
+
+  def make_filelist
+    Dir.new(@savedir).each do |entry|
+      if File.file?("#{@savedir}/#{entry}")
+        header = make_header(entry) 
+        filesize = File.size("#{@savedir}/#{entry}")
+        @filelist[header] = [] unless chk_header(header)
+        @filelist[header] << {:size => filesize,:name => "#{@savedir}/#{entry}" }
+      end
+    end
+    pp @filelist
+  end
+  
+  def chk_header(string) 
+    @filelist[string]
+  end    
+
+  def make_header(string)
+    header = string.scan(/^.*?\d{1,3}話/).first.gsub(' ','').gsub('　','')
+    p header
+    return header
+  end
+
+  def make_dellist
+    @filelist.each do |k,v|
+      p k
+      max_size = v.map { |e| e[:size] }.max
+      p max_size
+      v.each do |vv|
+        @dellist << vv[:name] if vv[:size] < max_size
+      end
+    end
+    pp @dellist
+  end
+
+  def del_small_files
+    @dellist.each do |e|
+      p e
+      File.delete("#{e}")
+    end
+  end
+
+  def episode_exists?(key)
+    if @checklist[key].nil?
+#      puts "MACHINE NOE FIRST CHECK THIS EPISODE!!".red.bold
+      @checklist[key] = "checked"
+      return false
+    else
+      return true
+    end
+  end
+  
+  # machine go to run eventmachine
+  def go
+    EM.run do
+      EM.add_periodic_timer(0.00001) do
+#        print "loop".green
+        if should_stop_machine?        
+          finalize_files
+          EM.stop
+        end
+        @queue.pop.run unless @queue.empty?
+      end
+    end
+    puts "End of fetch".green.bold
+  end
+
+
+  # delete tiny fail files 
+  def finalize_files
+    command = "find #{@savedir} -size -1000k -type f -print0| xargs -0 rm -v "
+    exec(command)
+  end
+
+  private
+
+  # setup jobs
+  def setupjobs
+    ajob = MyJobAnisoku.new(
+      :machine => self
+      )
+    @queue.push ajob
+  end
+
+  # should stop machine or not
+  def should_stop_machine?
+    @gaman += 1 if @queue.empty?
+    print @gaman
+    return @queue.empty? && @gaman > 1500
+  end
+end

@@ -29,6 +29,10 @@ class MyJobAnisoku
     @a[:url] = URI.parse @a[:url] unless @a[:url].class == URI::HTTP
     @agent = Mechanize.new
     @a[:status] ||= :new
+    @a[:recent] ||= 7
+    @a[:limit] ||= 3
+    # make md5 with magicword '_gGddgPfeaf_gzyr'
+    @FC2magick = @a[:fc2magick] ||='_gGddgPfeaf_gzyr'  #updated FC2 2011.7
     raise "job have no machine error"  unless @a[:machine]
   end
 
@@ -36,18 +40,18 @@ class MyJobAnisoku
   def tokkakari
     print "Tokkakari".yellow
     @agent.get @a[:url]
-    links_kousins = @agent.page.links_with(:text => /#{"更新状況".toutf8}/)
+    links_kousins = @agent.page.links_with(:text => /#{"更新状況"}/)
     targs = []
     links_kousins.each do |link|
       targs << link.uri
     end
     targs.each_with_index do |link,i|
-      break if i > 6
+      break if i >= @a[:recent]
       job = MyJobAnisoku.new(
-        :url => link,
-        :status => :second,
-        :machine => @a[:machine]
-        )
+        @a.merge({
+          :url => link,
+          :status => :second
+          }) )
       @a[:machine].retry job
     end
     
@@ -67,10 +71,10 @@ class MyJobAnisoku
     # make job for each links_kobetu
     links_kobetu.each do |link|
       job = MyJobAnisoku.new(
-        :url => link,
-        :status => :kobetu,
-        :machine => @a[:machine]
-        )
+        @a.merge({
+          :url => link,
+          :status => :kobetu
+        } ))
       @a[:machine].retry job
     end
   end
@@ -79,32 +83,33 @@ class MyJobAnisoku
   def kobetu
     print "Kobetu".yellow
     @agent.get @a[:url]
-    _tt = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
-    limit = 5
-    urls = []
+    title = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
     # acume url
-    nodeset_vs = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[2]/a/@href"
-    _dd = []
-
-    nodeset_vs.each do |va|
-      _dd << $1  if va.value =~ /(http:\/\/say-move\.org\/comeplay\.php.*)/
-    end
-    _dd.reverse!
-
-    #hard coding for adjust fetch limit
-    _dd.each_with_index do |url,i|
-      break if i > limit
-      urls << url
-    end
-    
-    urls.each_with_index do |url,i|
-      job = MyJobAnisoku.new(
-        :url => url,
-        :title => _tt,
-        :status => :third,
-        :machine => @a[:machine]
-        )
-      @a[:machine].retry job
+    htmlA = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[@class='kijisub']"
+require 'pp'
+    targsHTMLs = htmlA.inner_html.toutf8.split(/ランキング/)[0].split(/\n第/).reverse!
+#http://posterous.com/getfile/files.posterous.com/temp-2011-08-21/eolunzlwwwFopCnhszaBwJlFEJEnHcloqkoyaFuhdezmdgipcyyiyzdpqcpG/cro08nyoutube.doc
+    require 'digest' 
+    targsHTMLs.each_with_index do |html,i|
+      break if i >= @a[:limit]
+      key = title + html.to_s
+      unless @a[:machine].episode_exists?( Digest::MD5.hexdigest(key)  )
+        puts "NOW 2 PROCEED FETCH".green.bold + html[0..20].yellow.bold
+        indi = Nokogiri::HTML.fragment(html).css("a")
+        indi.each do |va|
+          if va[:href] =~ /(http:\/\/say-move\.org\/comeplay\.php.*)/
+            job = MyJobAnisoku.new(
+              @a.merge({
+                  :url => $1,
+                  :title => title + '第' + html.split('<').first.gsub(' ','').gsub('　',''),
+                  :status => :third}))
+            @a[:machine].retry job
+          end
+        end
+      else
+        puts "CANCELL FETCH".cyan.bold + html[0..20].yellow.bold
+      end
+      key = nil
     end
   end
 
@@ -125,12 +130,12 @@ class MyJobAnisoku
       fc2 = set[0].value.split('&')[1].split('=')[1]
       unless fc2.nil?
         job = MyJobAnisoku.new(
+          @a.merge({
           :url => sm[:url],
           :fc2 => fc2,
           :title => sm[:title],
-          :status => :fc2,
-          :machine => @a[:machine]
-          )
+          :status => :fc2
+            }))
         @a[:machine].retry job
         return
       else
@@ -138,28 +143,26 @@ class MyJobAnisoku
     end
     
     job = MyJobAnisoku.new(
+      @a.merge({
       :url => sm[:videourl],
       :title => sm[:title],
-      :status => :video,
-      :machine => @a[:machine]
-      )
+      :status => :video
+        }))
      @a[:machine].retry job
   end
 
   def fc2
     print "fc2".yellow
     require 'digest'
-    # make md5 with magicword '_gGddgPfeaf_gzyr'
-    url = "http://video.fc2.com/ginfo.php?mimi=#{Digest::MD5.hexdigest(@a[:fc2] + '_gGddgPfeaf_gzyr')}&v=#{@a[:fc2]}&upid=#{@a[:fc2]}&otag=1"
+    url = "http://video.fc2.com/ginfo.php?mimi=#{Digest::MD5.hexdigest(@a[:fc2] + @FC2magick)}&v=#{@a[:fc2]}&upid=#{@a[:fc2]}&otag=1"
     url = `curl -# -L -R "#{url}"`
     url =  url.split('&')[0].split('=')[1] + '?' + url.split('&')[1]
     puts url.red.bold
     job = MyJobAnisoku.new(
-      :url => url,
-      :title => @a[:title],
-      :status => :video,
-      :machine => @a[:machine]
-      )
+      @a.merge({
+          :url => url,
+          :status => :video
+        }))
      @a[:machine].retry job
   end
 
@@ -169,7 +172,7 @@ class MyJobAnisoku
     # save video directory is supplied by machine.
     savedir = @a[:machine].savedir
     Dir.chdir savedir
-    filename = "#{@a[:title]}.mp4"
+    filename = "#{@a[:title].gsub(' ','').gsub('　','')}.mp4"
     savepath = "#{savedir}/#{filename}"
     # check fetch candidate had been already saved?
     if File.exist?(savepath) && File.size(savepath) > 1024 * 1024 * 3
@@ -179,13 +182,15 @@ class MyJobAnisoku
       puts "Fetching ".green.bold + savepath
       MyLogger.ln "Fetch Attempt Start ".green.bold  + savepath
     end
-    
+
     # use curl command
     # no need UA...
-    #    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' --user-agent 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:9.0a1) Gecko/20110901 Firefox/9.0a1'"
-    command = "curl -# -L -R -o '#{filename}' 'http://#{@a[:url].host}#{@a[:url].path}?#{@a[:url].query}' "
+    uri = "http://#{@a[:url].host}#{@a[:url].path}"
+    uri += "?#{@a[:url].query}" if @a[:url].query
+    command = "curl -# -L -R -o '#{filename}' '#{uri}' "
+    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
 
-    p command
+    puts command
     system command
   end
 
