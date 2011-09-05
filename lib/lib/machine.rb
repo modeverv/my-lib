@@ -196,7 +196,6 @@ class MyMachineAnisoku
     require 'pp'
     make_filelist
     make_dellist
-    del_small_files
   end
 
   def make_filelist
@@ -227,7 +226,9 @@ class MyMachineAnisoku
       max_size = v.map { |e| e[:size] }.max
       p max_size
       v.each do |vv|
-        @dellist << vv[:name] if vv[:size] < max_size
+        if vv[:size] < max_size || vv[:size] < 1024 * 1024 * 2
+          @dellist << vv[:name]
+        end
       end
     end
     pp @dellist
@@ -255,7 +256,7 @@ class MyMachineAnisoku
     EM.run do
       EM.add_periodic_timer(0.00001) do
 #        print "loop".green
-        if should_stop_machine?        
+        if should_stop_machine?
           finalize_files
           EM.stop
         end
@@ -268,6 +269,7 @@ class MyMachineAnisoku
 
   # delete tiny fail files 
   def finalize_files
+    del_small_files
     command = "find #{@savedir} -size -1000k -type f -print0| xargs -0 rm -v "
     exec(command)
   end
