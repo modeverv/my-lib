@@ -219,6 +219,8 @@ end
 
 class MyJobDojin
 
+  attr_accessor :args
+  
   def initialize(args = { })
     require 'net/http'
     @args = args
@@ -239,7 +241,7 @@ class MyJobDojin
 
     #debug
     @args[:debug]  ||= false
-    @args[:savepath] = '/dev/null' if @args[:debug]
+    @args[:savepath] = '/dev/null' if @args[:dryrun]
   end
 
   def run
@@ -306,11 +308,12 @@ class MyJobDojinEventMachine < MyJobDojin
   private
   
   def do_connect
-    return if @machine.bookended?(@args[:book])
+#    return if @machine.bookended?(@args[:book])
     return if file_already_saved?
 
     if @machine.connection_exceed? #コネクション限界を超えていないか？
       @machine.retry(self)
+      print "E".red.bold
       return
     end
 

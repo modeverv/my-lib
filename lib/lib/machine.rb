@@ -64,13 +64,19 @@ module MyMachineDojin
 
   private
 
+  def make_serial(book,page)
+    sprintf("%0#{10}d%0#{10}d",book,page)
+  end
+
   def setupjobs
     (0..100).each do |p|
       (@args[:start]..@args[:stop]).each do |b|
         job = MyDojinJob.new(
           :server => '1patu.net',
+          :serial => "#{make_serial(b,p)}",
           :book => b,
           :page => p,
+          :status => :go,                   
           :machine => self,
           :debug  => @args[:debug] ||= false
           )
@@ -94,22 +100,19 @@ class MyEventMachineDojin
 
   # EventMachine用の定義
   def go
-    @a=1;@b=0;@c=0;@d=0;
     EM.run do
       EM.add_periodic_timer(0.00001) do
-        @a-@b;@b-@c;@c-@d;@d-@a
-        print 1>@a? "l".green: "l".yellow
-        print 1>@b? "o".red: "o".white
-        print 1>@c? "o".cyan: "o".green
-        print 1>@d? "o".red: "o".green
+        print "."
         EM.stop if should_stop_machine?
         if !connection_exceed?
-           @queue.pop.run unless @queue.empty?
+          unless @queue.empty?
+            job = @queue.pop
+            job.run if job
+          end
         end
       end
     end
-    p @endbooks
-    @endbooks = []
+    p @endbooks.uniq!.sort!
     puts "End of fetch".green.bold
   end
 
@@ -151,8 +154,12 @@ class MyEventMachineDojin
 
   # Machineは終了すべきか？
   def should_stop_machine?
-    print " q:"+ @queue.size.to_s + "/c:" + @connection_count.to_s + " "
-      return @queue.size == 0 && @connection_count == 0
+    if @queue.size < 1000
+      print " q:"+ @queue.size.to_s + "/c:" + @connection_count.to_s
+    else
+      print "."
+    end
+    return @queue.size == 0 && @connection_count == 0
   end
 
 end
