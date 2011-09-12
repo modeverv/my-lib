@@ -10,19 +10,19 @@ class MyJobAnisokuMyJobAnisoku18,554
   def tokkakaritokkakari40,1167
   def secondsecond61,1648
   def kobetukobetu83,2229
-  def thirdthird117,3586
-  def fc2fc2154,4592
-  def videovideo170,5064
-  def runrun198,5957
-class MyJobDojinMyJobDojin220,6269
-  def initialize(args = { })initialize222,6287
-  def runrun245,7028
-  def do_connectdo_connect251,7073
-  def save_content(content)save_content280,7852
-  def checkdircheckdir288,8047
-  def file_already_saved?file_already_saved?296,8163
-class MyJobDojinEventMachine < MyJobDojinMyJobDojinEventMachine304,8296
-  def do_connectdo_connect308,8354
+  def thirdthird117,3588
+  def fc2fc2153,4589
+  def videovideo169,5061
+  def runrun197,5956
+class MyJobDojinMyJobDojin219,6268
+  def initialize(args = { })initialize221,6286
+  def runrun244,7027
+  def do_connectdo_connect250,7072
+  def save_content(content)save_content279,7851
+  def checkdircheckdir287,8046
+  def file_already_saved?file_already_saved?295,8162
+class MyJobDojinEventMachine < MyJobDojinMyJobDojinEventMachine303,8295
+  def do_connectdo_connect307,8353
 
 ,1352
 module MyMachineMyMachine7,106
@@ -125,19 +125,19 @@ class MyJobAnisokuMyJobAnisoku18,554
   def tokkakaritokkakari40,1167
   def secondsecond61,1648
   def kobetukobetu83,2229
-  def thirdthird117,3586
-  def fc2fc2154,4592
-  def videovideo170,5064
-  def runrun198,5957
-class MyJobDojinMyJobDojin220,6269
-  def initialize(args = { })initialize222,6287
-  def runrun245,7028
-  def do_connectdo_connect251,7073
-  def save_content(content)save_content280,7852
-  def checkdircheckdir288,8047
-  def file_already_saved?file_already_saved?296,8163
-class MyJobDojinEventMachine < MyJobDojinMyJobDojinEventMachine304,8296
-  def do_connectdo_connect308,8354
+  def thirdthird117,3588
+  def fc2fc2153,4589
+  def videovideo169,5061
+  def runrun197,5956
+class MyJobDojinMyJobDojin219,6268
+  def initialize(args = { })initialize221,6286
+  def runrun244,7027
+  def do_connectdo_connect250,7072
+  def save_content(content)save_content279,7851
+  def checkdircheckdir287,8046
+  def file_already_saved?file_already_saved?295,8162
+class MyJobDojinEventMachine < MyJobDojinMyJobDojinEventMachine303,8295
+  def do_connectdo_connect307,8353
 
 ,1352
 module MyMachineMyMachine7,106

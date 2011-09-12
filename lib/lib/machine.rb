@@ -6,10 +6,6 @@
 # this class has queue of jobs.controll jobs and run jobs
 module MyMachine
 
-  Version = "0.0.1"    
-
-  attr_accessor :queue
-
   def initialize
     require 'thread'
     @queue = Queue.new
@@ -21,7 +17,7 @@ module MyMachine
   end
 
   def go
-    puts "You need write the go method!"
+    raise "You need write the go method!"
   end
 
   def retry(job)
@@ -31,17 +27,16 @@ module MyMachine
   private
 
   def setupjobs
-    puts "You need write the setupjobs method!" 
+    puts "iF need, write the setupjobs method!" 
   end
   
   def setupmachine
-    puts "You need write the setupmachine method!"
+    puts "if need, write the setupmachine method!"
   end
 
 end
 
-
-module MyMachineDojin
+class MyEventMachineDojin
   include MyMachine
 
   def initialize(args={ })
@@ -52,50 +47,13 @@ module MyMachineDojin
     @args[:concurrency] ||= 10
     @args[:savedir] ||= "#{ENV['HOME']}/Downloads/jpg"
     @endbooks = []
-  end
-
-  def bookend(booknum)
-    @endbooks << booknum
-  end
-
-  def bookended?(booknum)
-    @endbooks.index(booknum)
-  end
-
-  private
-
-  def make_serial(book,page)
-    sprintf("%0#{10}d%0#{10}d",book,page)
-  end
-
-  def setupjobs
-    (0..100).each do |p|
-      (@args[:start]..@args[:stop]).each do |b|
-        job = MyDojinJob.new(
-          :server => '1patu.net',
-          :serial => "#{make_serial(b,p)}",
-          :book => b,
-          :page => p,
-          :status => :go,                   
-          :machine => self,
-          :debug  => @args[:debug] ||= false
-          )
-        @queue.push job
-      end
-    end
-  end
-end
-
-
-class MyEventMachineDojin
-  include MyMachineDojin
-
-  def initialize(args={ })
-    super args
-    # queをEventMachineで再定義
     require 'rubygems'
     require 'eventmachine'
     @connection_count = 0
+    require 'thread'
+    @connection_que = Queue.new
+    @list = []
+    @gaman = 0
   end
 
   # EventMachine用の定義
@@ -112,26 +70,39 @@ class MyEventMachineDojin
         end
       end
     end
-    p @endbooks.uniq!.sort!
+#    p @endbooks.uniq!.sort
     puts "End of fetch".green.bold
   end
 
   def connection_exceed?
-    @args[:concurrency] <= @connection_count 
+#    @args[:concurrency] <= @connection_count 
+    @args[:concurrency] <= @connection_que.size
   end
 
   def connection_count!
-    @connection_count += 1
-    
+#    @connection_count += 1
+    @connection_que.push(:t)
   end
 
   def connection_end!
-    @connection_count -= 1
+    @connection_que.pop
+#    @connection_count -= 1
+  end
+  
+  def savecontent(path)
+    @list <<  path
   end
 
+  def write
+    open("#{@args[:savedir]}/emit.txt" ,"w") do |io|
+      io.write('["')
+      io.write(@list.sort.join('","'))
+      io.write('"]')
+    end
+  end
+  
   private
 
-  # EventMachine用に再定義
   def setupjobs
     (0..100).each do |p|
       (@args[:start]..@args[:stop]).each do |b|
@@ -148,18 +119,13 @@ class MyEventMachineDojin
     end
   end
 
-  # 何もしない
-  def setupmachine
-  end
-
   # Machineは終了すべきか？
   def should_stop_machine?
-    if @queue.size < 1000
-      print " q:"+ @queue.size.to_s + "/c:" + @connection_count.to_s
-    else
-      print "."
+    @gaman += 1  if @queue.size < 10
+    if @gaman > 200
+      write if @queue.size == 0
+      return true
     end
-    return @queue.size == 0 && @connection_count == 0
   end
 
 end
@@ -174,8 +140,6 @@ end
 #
 class MyMachineAnisoku
   include MyMachine
-
-  Version = "0.0.1"    
 
   # directory of save video files default "#{ENV['HOME']}/Desktop/video"
   attr_accessor :savedir
@@ -278,12 +242,13 @@ class MyMachineAnisoku
     puts "End of fetch".green.bold
   end
 
-
   # delete tiny fail files 
   def finalize_files
     del_small_files
     command = "find #{@savedir} -size -1000k -type f -print0| xargs -0 rm -v "
-    exec(command)
+    exec command
+    command = "find /Users/seijiro/Desktop/video -type f > ~/Desktop/video.m3u && open ~/Desktop/video.m3u "
+    exec command
   end
 
   private

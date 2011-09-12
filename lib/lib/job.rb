@@ -48,10 +48,10 @@ class MyJobAnisoku
     targs.each_with_index do |link,i|
       break if i >= @a[:recent]
       job = MyJobAnisoku.new(
-        @a.merge({
-          :url => link,
-          :status => :second
-          }) )
+                             @a.merge({
+                                        :url => link,
+                                        :status => :second
+                                      }) )
       @a[:machine].retry job
     end
     
@@ -71,10 +71,10 @@ class MyJobAnisoku
     # make job for each links_kobetu
     links_kobetu.each do |link|
       job = MyJobAnisoku.new(
-        @a.merge({
-          :url => link,
-          :status => :kobetu
-        } ))
+                             @a.merge({
+                                        :url => link,
+                                        :status => :kobetu
+                                      } ))
       @a[:machine].retry job
     end
   end
@@ -86,28 +86,28 @@ class MyJobAnisoku
     title = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
     # acume url
     htmlA = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[@class='kijisub']"
-require 'pp'
+    require 'pp'
     targsHTMLs = htmlA.inner_html.toutf8.split(/ランキング/)[0].split(/\n第/).reverse!
-#http://posterous.com/getfile/files.posterous.com/temp-2011-08-21/eolunzlwwwFopCnhszaBwJlFEJEnHcloqkoyaFuhdezmdgipcyyiyzdpqcpG/cro08nyoutube.doc
+    #http://posterous.com/getfile/files.posterous.com/temp-2011-08-21/eolunzlwwwFopCnhszaBwJlFEJEnHcloqkoyaFuhdezmdgipcyyiyzdpqcpG/cro08nyoutube.doc
     require 'digest' 
     targsHTMLs.each_with_index do |html,i|
       break if i >= @a[:limit]
       key = title + html.to_s
       unless @a[:machine].episode_exists?( Digest::MD5.hexdigest(key)  )
-#        puts "NOW 2 PROCEED FETCH".green.bold + html[0..20].yellow.bold
+        #        puts "NOW 2 PROCEED FETCH".green.bold + html[0..20].yellow.bold
         indi = Nokogiri::HTML.fragment(html).css("a")
         indi.each do |va|
           if va[:href] =~ /(http:\/\/say-move\.org\/comeplay\.php.*)/
             job = MyJobAnisoku.new(
-              @a.merge({
-                  :url => $1,
-                  :title => title + '第' + html.split('<').first.gsub(' ','').gsub('　',''),
-                  :status => :third}))
+                                   @a.merge({
+                                              :url => $1,
+                                              :title => title + '第' + html.split('<').first.gsub(' ','').gsub('　',''),
+                                              :status => :third}))
             @a[:machine].retry job
           end
         end
       else
-#        puts "CANCELL FETCH".cyan.bold + html[0..20].yellow.bold
+        #        puts "CANCELL FETCH".cyan.bold + html[0..20].yellow.bold
       end
       key = nil
     end
@@ -130,12 +130,12 @@ require 'pp'
       fc2 = set[0].value.split('&')[1].split('=')[1]
       unless fc2.nil?
         job = MyJobAnisoku.new(
-          @a.merge({
-          :url => sm[:url],
-          :fc2 => fc2,
-          :title => sm[:title],
-          :status => :fc2
-            }))
+                               @a.merge({
+                                          :url => sm[:url],
+                                          :fc2 => fc2,
+                                          :title => sm[:title],
+                                          :status => :fc2
+                                        }))
         @a[:machine].retry job
         return
       else
@@ -143,12 +143,12 @@ require 'pp'
     end
     
     job = MyJobAnisoku.new(
-      @a.merge({
-      :url => sm[:videourl],
-      :title => sm[:title],
-      :status => :video
-        }))
-     @a[:machine].retry job
+                           @a.merge({
+                                      :url => sm[:videourl],
+                                      :title => sm[:title],
+                                      :status => :video
+                                    }))
+    @a[:machine].retry job
   end
 
   def fc2
@@ -159,11 +159,11 @@ require 'pp'
     url =  url.split('&')[0].split('=')[1] + '?' + url.split('&')[1]
     puts url.red.bold
     job = MyJobAnisoku.new(
-      @a.merge({
-          :url => url,
-          :status => :video
-        }))
-     @a[:machine].retry job
+                           @a.merge({
+                                      :url => url,
+                                      :status => :video
+                                    }))
+    @a[:machine].retry job
   end
 
   #fetch video
@@ -188,9 +188,9 @@ require 'pp'
     uri = "http://#{@a[:url].host}#{@a[:url].path}"
     uri += "?#{@a[:url].query}" if @a[:url].query
     command = "curl -# -L -R -o '#{filename}' '#{uri}' "
-#    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
+    #    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
 
-#    puts command
+    #    puts command
     system command
   end
 
@@ -213,7 +213,6 @@ require 'pp'
       end
     end
   end
-  
 end
 
 
@@ -227,7 +226,7 @@ class MyJobDojin
 
     #sample http://1patu.net/data/20591/preview/000.jpg
     @args[:path]   = "/data/#{@args[:book].to_s}/preview/" +
-                     sprintf("%0#{3}d", @args[:page]) + ".jpg"
+      sprintf("%0#{3}d", @args[:page]) + ".jpg"
     @args[:cookie] ||= { 'Cookie' => '1patu_view=1'}
     @args[:status] = :new
     @args[:try]    = 0
@@ -236,7 +235,7 @@ class MyJobDojin
     @args[:savebookdir] = "#{@args[:savedir].to_s}/#{@args[:book].to_s}"
     checkdir
     @args[:savepath] = "#{@args[:savebookdir]}/" +
-                       sprintf("%0#{3}d", @args[:page]) + ".jpg"
+      sprintf("%0#{3}d", @args[:page]) + ".jpg"
     @machine = @args[:machine]
 
     #debug
@@ -247,6 +246,8 @@ class MyJobDojin
   def run
     do_connect
   end
+
+  
 
   private
   
@@ -284,6 +285,7 @@ class MyJobDojin
       io.write(content)
     end
     print "fetched:".green.bold + @args[:path]
+    @machine.savecontent(@args[:savepath])
   end
 
   # ダウンロード保存先を作る
@@ -291,7 +293,7 @@ class MyJobDojin
     begin
       Dir::mkdir(@args[:savebookdir], 0777)
     rescue => ex
-#      warn ex
+      #      warn ex
     end
   end
 
@@ -308,43 +310,50 @@ class MyJobDojinEventMachine < MyJobDojin
   private
   
   def do_connect
-#    return if @machine.bookended?(@args[:book])
-    return if file_already_saved?
+      return if file_already_saved?
 
-    if @machine.connection_exceed? #コネクション限界を超えていないか？
-      @machine.retry(self)
-      print "E".red.bold
-      return
-    end
+#      if @machine.connection_exceed? #コネクション限界を超えていないか？
+#        @machine.retry(self)
+#        print "E".red.bold
+#        return
+#      end
 
-    @machine.connection_count!
+      @http = EventMachine::Protocols::HttpClient.
+        request(
+                :host => @args[:server],
+                :port => @args[:port],
+                :request => @args[:path],
+                :cookie => @args[:cookie]['Cookie']
+                )
+      @machine.connection_count!
+      @http.errback{
+        begin
+        ensure
+          @machine.connection_end!
+        end
+      }
 
-    @http = EventMachine::Protocols::HttpClient.request(
-      :host => @args[:server],
-      :port => @args[:port],
-      :request => @args[:path],
-      :cookie => @args[:cookie]['Cookie']
-    )
-
-    @http.callback {|response|
-      @machine.connection_end!
-      if response[:status] == 200
-        # 200 はレスポンスの中身を保存する
-        save_content(response[:content])
-      elsif response[:status] == 503 ||
-            response[:status] == 500 ||
-            response[:status] == 403
-        # 503/500/403はリトライする
-        @args[:try] += 1
-        @machine.retry(self) if @args[:try] < 6
-      elsif response[:status] == 404
-        # 404は終了する
-        @machine.bookend(@args[:book])
-      else 
-        puts response[:status].to_s.red.bold
-        puts response[:headers].to_s.red.bold
-      end
-    }
+      @http.callback {|response|
+        begin
+          if response[:status] == 200
+            # 200 はレスポンスの中身を保存する
+            save_content(response[:content])
+          elsif response[:status] == 503 ||
+              response[:status] == 500 ||
+              response[:status] == 403
+            # 503/500/403はリトライする
+            @args[:try] += 1
+            @machine.retry(self) if @args[:try] < 6
+          elsif response[:status] == 404
+            # 404は終了する
+          else 
+            puts response[:status].to_s.red.bold
+            puts response[:headers].to_s.red.bold
+          end
+        ensure
+          @machine.connection_end!
+        end
+      }
   end
 end
 
