@@ -153,7 +153,7 @@ class MyJobAnisoku
     print "fc2".yellow
     require 'digest'
     url = "http://video.fc2.com/ginfo.php?mimi=#{Digest::MD5.hexdigest(@a[:fc2] + @FC2magick)}&v=#{@a[:fc2]}&upid=#{@a[:fc2]}&otag=1"
-    url = `curl -# -L -R "#{url}"`
+    url = `curl -# -L -R "#{url} "`
     url =  url.split('&')[0].split('=')[1] + '?' + url.split('&')[1]
     puts url.red.bold
     job = MyJobAnisoku.new(
@@ -185,7 +185,7 @@ class MyJobAnisoku
     # no need UA...
     uri = "http://#{@a[:url].host}#{@a[:url].path}"
     uri += "?#{@a[:url].query}" if @a[:url].query
-    command = "curl –silent -L -R -o '#{filename}' '#{uri}' "
+    command = "curl -# -L -R -o '#{filename}' '#{uri}' >/dev/null 2>&1"
     #    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
 
     #    puts command
