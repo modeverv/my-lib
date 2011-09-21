@@ -17,8 +17,6 @@
 #   
 class MyJobAnisoku
 
-  Version = "0.0.2"    
-
   def initialize(args = { })
     require 'rubygems'
     require 'kconv'
@@ -187,7 +185,7 @@ class MyJobAnisoku
     # no need UA...
     uri = "http://#{@a[:url].host}#{@a[:url].path}"
     uri += "?#{@a[:url].query}" if @a[:url].query
-    command = "curl -# -L -R -o '#{filename}' '#{uri}' "
+    command = "curl –silent -L -R -o '#{filename}' '#{uri}' "
     #    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
 
     #    puts command
