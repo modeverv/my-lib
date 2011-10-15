@@ -4,14 +4,14 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{my-lib}
-  s.version = "0.0.2.0"
+  s.name = "my-lib"
+  s.version = "0.2.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{modeverv}]
-  s.date = %q{2011-09-21}
-  s.description = %q{longer description of your gem}
-  s.email = %q{modeverv@gmail.com}
+  s.authors = ["modeverv"]
+  s.date = "2011-10-15"
+  s.description = "longer description of your gem"
+  s.email = "modeverv@gmail.com"
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -42,11 +42,11 @@ Gem::Specification.new do |s|
     "spec/my-lib_spec.rb",
     "spec/spec_helper.rb"
   ]
-  s.homepage = %q{http://github.com/modeverv/my-lib}
-  s.licenses = [%q{MIT}]
-  s.require_paths = [%q{lib}]
-  s.rubygems_version = %q{1.8.6}
-  s.summary = %q{one-line summary of your gem}
+  s.homepage = "http://github.com/modeverv/my-lib"
+  s.licenses = ["MIT"]
+  s.require_paths = ["lib"]
+  s.rubygems_version = "1.8.10"
+  s.summary = "one-line summary of your gem"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
