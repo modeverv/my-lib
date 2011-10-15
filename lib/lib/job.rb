@@ -23,15 +23,17 @@ class MyJobAnisoku
     require 'mechanize'
     require 'net/http'
     @a = args
+    @debug = args[:debug] ||= false
     @a[:url] ||= 'http://youtubeanisoku1.blog106.fc2.com/'
     @a[:url] = URI.parse @a[:url] unless @a[:url].class == URI::HTTP
     @agent = Mechanize.new
     @a[:status] ||= :new
     @a[:recent] ||= 7
-    @a[:limit] ||= 3
+    @a[:limit] ||= 4
     # make md5 with magicword '_gGddgPfeaf_gzyr'
     @FC2magick = @a[:fc2magick] ||='_gGddgPfeaf_gzyr'  #updated FC2 2011.7
     raise "job have no machine error"  unless @a[:machine]
+    p @a if @debug && @a[:status] == :new
   end
 
   # check kousin page
@@ -39,19 +41,41 @@ class MyJobAnisoku
     print "Tokkakari".yellow
     @agent.get @a[:url]
     links_kousins = @agent.page.links_with(:text => /#{"更新状況"}/)
+    links_kousins2 = @agent.page.links_with(:href => /blog\-entry/)
     targs = []
+    targs2 = []
+
     links_kousins.each do |link|
       targs << link.uri
     end
+    
+    links_kousins2.each do |link|
+      targs2 << link.uri
+    end
+
     targs.each_with_index do |link,i|
       break if i >= @a[:recent]
-      job = MyJobAnisoku.new(
-                             @a.merge({
-                                        :url => link,
-                                        :status => :second
-                                      }) )
+      p link if @debug
+      job = MyJobAnisoku
+        .new(
+             @a.merge({
+                        :url => link,
+                        :status => :second,
+                      }) )
       @a[:machine].retry job
     end
+    
+    targs2.each_with_index do |link,i|
+      p link if @debug
+      job = MyJobAnisoku
+        .new(
+             @a.merge({
+                        :url => link,
+                        :status => :kobetu,
+                      }) )
+      @a[:machine].retry job
+    end
+
     
   end
 
@@ -68,6 +92,7 @@ class MyJobAnisoku
 
     # make job for each links_kobetu
     links_kobetu.each do |link|
+      p link if @debug
       job = MyJobAnisoku.new(
                              @a.merge({
                                         :url => link,
@@ -95,6 +120,7 @@ class MyJobAnisoku
         #        puts "NOW 2 PROCEED FETCH".green.bold + html[0..20].yellow.bold
         indi = Nokogiri::HTML.fragment(html).css("a")
         indi.each do |va|
+          p va[:href] if @debug
           if va[:href] =~ /(http:\/\/say-move\.org\/comeplay\.php.*)/
             job = MyJobAnisoku.new(
                                    @a.merge({
@@ -105,7 +131,7 @@ class MyJobAnisoku
           end
         end
       else
-        #        puts "CANCELL FETCH".cyan.bold + html[0..20].yellow.bold
+        puts "ALREADY REGISTED CANCELL FETCH".cyan.bold + html[0..20].yellow.bold if @debug
       end
       key = nil
     end
@@ -127,6 +153,7 @@ class MyJobAnisoku
       set =  @agent.page/"/html/body/div/div[2]/div[3]/object/param[5]/@value"
       fc2 = set[0].value.split('&')[1].split('=')[1]
       unless fc2.nil?
+        p sm[:url] if @debug
         job = MyJobAnisoku.new(
                                @a.merge({
                                           :url => sm[:url],
@@ -188,8 +215,8 @@ class MyJobAnisoku
     command = "curl -# -L -R -o '#{filename}' '#{uri}' >/dev/null 2>&1"
     #    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
 
-    #    puts command
-    system command
+    puts command if @debug
+    system command unless @debug
   end
 
   # run in thread

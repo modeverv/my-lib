@@ -6,9 +6,11 @@
 # this class has queue of jobs.controll jobs and run jobs
 module MyMachine
 
-  def initialize
+  def initialize(args={})
     require 'thread'
+    require 'pp'
     @queue = Queue.new
+    @debug = args[:debug]||= false
   end
   
   def setup
@@ -40,7 +42,7 @@ class MyEventMachineDojin
   include MyMachine
 
   def initialize(args={ })
-    super()
+    super(args)
     @args = args
     @args[:start] ||= 3000
     @args[:stop] ||= 3100
@@ -70,23 +72,20 @@ class MyEventMachineDojin
         end
       end
     end
-#    p @endbooks.uniq!.sort
+    p @endbooks.uniq!.sort if @debug
     puts "End of fetch".green.bold
   end
 
   def connection_exceed?
-#    @args[:concurrency] <= @connection_count 
     @args[:concurrency] <= @connection_que.size
   end
 
   def connection_count!
-#    @connection_count += 1
     @connection_que.push(:t)
   end
 
   def connection_end!
     @connection_que.pop
-#    @connection_count -= 1
   end
   
   def savecontent(path)
@@ -112,7 +111,7 @@ class MyEventMachineDojin
           :book => b,
           :page => p,
           :machine => self,
-          :debug  => @args[:debug] ||= false
+          :debug  => @debug,
           )
         @queue.push job
       end
@@ -149,7 +148,7 @@ class MyMachineAnisoku
   # @option args [String] :savedir save dir
   #                        default "#{ENV['HOME']}/Desktop/video"
   def initialize(args={ })
-    super()
+    super(args)
     args[:savedir] ||= "#{ENV['HOME']}/Desktop/video"
     @savedir = args[:savedir]
     begin
@@ -164,7 +163,11 @@ class MyMachineAnisoku
     @checklist = {}
     @filelist = {}
     @dellist = []
-#    require 'pp'
+
+    @args = args
+    @args[:limit] ||= 7
+    @args[:recent] ||= 7
+    
     make_filelist
     make_dellist
   end
@@ -176,12 +179,14 @@ class MyMachineAnisoku
         if header
           filesize = File.size("#{@savedir}/#{entry}")
           @filelist[header] = [] unless chk_header(header)
-          @filelist[header] << {:size => filesize,
-                                :name => "#{@savedir}/#{entry}" }
+          @filelist[header] << {
+            :size => filesize,
+            :name => "#{@savedir}/#{entry}",
+          }
         end
       end
     end
-#    pp @filelist
+    pp @filelist if @debug
   end
   
   def chk_header(string) 
@@ -192,34 +197,34 @@ class MyMachineAnisoku
     if string.scan(/^.*?\d{1,3}話/).first
       header = string.scan(/^.*?\d{1,3}話/).first.gsub(' ','').gsub('　','')
     end
-#    p header
+    p header if @debug
     return header
   end
 
   def make_dellist
     @filelist.each do |k,v|
-#      p k
+      p k if @debug
       max_size = v.map { |e| e[:size] }.max
-#      p max_size
+      p max_size if @debug
       v.each do |vv|
         if vv[:size] < max_size || vv[:size] < 1024 * 1024 * 2
           @dellist << vv[:name]
         end
       end
     end
-#    pp @dellist
+    pp @dellist if @debug
   end
 
   def del_small_files
     @dellist.each do |e|
-#      p e
+      p e if @debug
       File.delete("#{e}")
     end
   end
 
   def episode_exists?(key)
     if @checklist[key].nil?
-#      puts "MACHINE NOE FIRST CHECK THIS EPISODE!!".red.bold
+      puts "MACHINE NOE FIRST CHECK THIS EPISODE!!".red.bold if @debug
       @checklist[key] = "checked"
       return false
     else
@@ -255,16 +260,20 @@ class MyMachineAnisoku
 
   # setup jobs
   def setupjobs
-    ajob = MyJobAnisoku.new(
-      :machine => self
-      )
+    ajob = MyJobAnisoku
+      .new(
+           :machine => self,
+           :limit => @args[:limit],
+           :recent => @args[:recent],
+           :debug => @debug,
+           )
     @queue.push ajob
   end
 
   # should stop machine or not
   def should_stop_machine?
     @gaman += 1 if @queue.empty?
-    print @gaman
-    return @queue.empty? && @gaman > 1500
+    print @gaman if @debug
+    return @queue.empty? && @gaman > 4000
   end
 end
