@@ -33,6 +33,7 @@ class MyJobAnime44
 
   def anime44_first
     print :anime44_first if @debug
+    puts @a[:url] if @debug
     begin
       @agent.get @a[:url]
     rescue => ex
@@ -84,28 +85,32 @@ class MyJobAnime44
     
     
     begin
-      if @a[:recursive] < 4
+      if @a[:recursive] > 0
         alignleft = @agent.page.search('div.alignleft a')[0]['href']
         job = MyJobAnime44.new(
                                @a.merge({
                                           :url => alignleft,
-                                          :recursive => @a[:recursive] + 1,
+                                          :recursive => @a[:recursive] -1 ,
                                           :status => :anime44_first}))
         @a[:machine].retry job
+      else
+        p "recursive stop" if @debug
       end
     rescue => ex
     end
     
     begin
-      if @a[:recursive] < 4
+      if @a[:recursive] > 0
         alignright = @agent.page.search('div.alignright a')[0]['href']
         job = MyJobAnime44.new(
                                @a.merge({
                                           :url => alignright,
-                                          :recursive => @a[:recursive] + 1,
+                                          :recursive => @a[:recursive] - 1,
                                           
                                           :status => :anime44_first}))
         @a[:machine].retry job
+      else
+        p "recursive stop" if @debug
       end
     rescue => ex
     end
