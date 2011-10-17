@@ -1,4 +1,157 @@
 #-*- coding:utf-8 -*-
+
+class MyJobAnime44
+  def initialize(args={})
+    require 'kconv'
+    require 'mechanize'
+    require 'net/http'
+    @a = args
+    @debug = args[:debug] ||= false
+    @a[:url] ||= 'http://www.anime44.com/'
+    @a[:status] ||= :top_page
+    return if @a[:url].nil?
+    @agent = Mechanize.new
+    @a[:recursive] ||= 4
+  end
+  #   
+  def top_page
+    print :top_page if @debug
+    @agent.get @a[:url]
+    #    p @agent.page
+    @agent.page.search('table')[1].css('td li')
+    targs =  @agent.page.search('table')[1].css('td li').select {|ne| ne.text =~ /\(Raw\)/ }
+    a_s = []
+    targs.each {|ne| a_s << ne.css('a').map{|e|e[:href]}[0]}
+    a_s.each do |link|
+      job = MyJobAnime44.new(@a.merge({
+                                        :url => link,
+                                        :status => :anime44_first
+                                      }))
+      @a[:machine].retry job
+    end
+  end
+
+  def anime44_first
+    print :anime44_first if @debug
+    begin
+      @agent.get @a[:url]
+    rescue => ex
+      p ex if @debug
+      p @a[:url] if @debug
+      return 
+    end
+    @title = @agent.page.title
+
+    flg = false
+    
+    daily_embeds_links = @agent.page.search('embed[@src^="http://www.daily"]').map {|ne| ne[:src] }
+    
+    unless daily_embeds_links[0].nil?
+      uri = daily_src2hqurl(daily_embeds_links[0])
+      if uri[:status] == :ok
+        flg = true
+        job = MyJobAnime44.new(
+                               @a.merge({
+                                          :url => uri[:url],
+                                          :title => @title,
+                                          :status => :anime44_fetch}))
+        @a[:machine].retry job
+      end
+    end
+
+    unless flg == true
+      begin
+        @agent.get @a[:url]
+      rescue => ex
+        p ex if @debug
+        p @a[:url] if @debug
+        return 
+      end
+      
+      videozer_embeds_links = @agent.page.search('embed[@src^="http://www.videozer"]').map {|ne| ne[:src] }
+      unless videozer_embeds_links[0].nil?
+        flg = true
+        url1 = videozer_embeds_links[0].gsub('http://www.videozer.com/embed/','http://video195.videozer.com/video?v=')
+        url = "#{url1}&r=1&t=#{Time.new.to_i.to_s}&u=&start=0"
+        job = MyJobAnime44.new(
+                               @a.merge({
+                                          :url => url,
+                                          :title => @title,
+                                          :status => :anime44_fetch}))
+        @a[:machine].retry job
+      end
+    end
+    
+    
+    begin
+      if @a[:recursive] < 4
+        alignleft = @agent.page.search('div.alignleft a')[0]['href']
+        job = MyJobAnime44.new(
+                               @a.merge({
+                                          :url => alignleft,
+                                          :recursive => @a[:recursive] + 1,
+                                          :status => :anime44_first}))
+        @a[:machine].retry job
+      end
+    rescue => ex
+    end
+    
+    begin
+      if @a[:recursive] < 4
+        alignright = @agent.page.search('div.alignright a')[0]['href']
+        job = MyJobAnime44.new(
+                               @a.merge({
+                                          :url => alignright,
+                                          :recursive => @a[:recursive] + 1,
+                                          
+                                          :status => :anime44_first}))
+        @a[:machine].retry job
+      end
+    rescue => ex
+    end
+  end
+
+  def anime44_fetch
+    print "video".yellow
+
+    savedir = @a[:machine].savedir
+    Dir.chdir savedir
+
+    filename = "#{@a[:title].gsub(' ','').gsub('　','')}.mp4"
+    savepath = "#{savedir}/#{filename}"
+
+    if File.exist?(savepath) && File.size(savepath) > 1024 * 1024 * 3
+      puts "File Already Saved ".yellow.bold  + savepath
+      return
+    else
+      puts "Fetching ".green.bold + savepath
+      MyLogger.ln "Fetch Attempt Start ".green.bold  + savepath
+    end
+    # use curl command
+    # no need UA...
+    command = "curl -# -L -R -o '#{filename}' '#{@a[:url]}' >/dev/null 2>&1 &"
+    puts command 
+    system command unless @debug
+  end
+
+  def daily_src2hqurl(url)
+    require 'json'
+    begin
+      js= JSON.parse(@agent.get(url.gsub('swf','sequence/full')).body)
+      uri = js[0]['layerList'][0]['sequenceList'][1]['layerList'][2]['param']['videoPluginParameters']['hqURL']
+    rescue =>ex
+      return {:status => :error}
+    end
+    {:status => :ok,:url => uri}
+  end
+  
+  def run
+    send @a[:status]
+  end
+  
+end
+
+
 # Job Class for Fetch Anisoku
 # Function:
 #   access "youtubeanisoku1.blog106.fc2.com" and crawl web site.
@@ -335,50 +488,50 @@ class MyJobDojinEventMachine < MyJobDojin
   private
   
   def do_connect
-      return if file_already_saved?
+    return if file_already_saved?
 
-#      if @machine.connection_exceed? #コネクション限界を超えていないか？
-#        @machine.retry(self)
-#        print "E".red.bold
-#        return
-#      end
+    #      if @machine.connection_exceed? #コネクション限界を超えていないか？
+    #        @machine.retry(self)
+    #        print "E".red.bold
+    #        return
+    #      end
 
-      @http = EventMachine::Protocols::HttpClient.
-        request(
-                :host => @args[:server],
-                :port => @args[:port],
-                :request => @args[:path],
-                :cookie => @args[:cookie]['Cookie']
-                )
-      @machine.connection_count!
-      @http.errback{
-        begin
-        ensure
-          @machine.connection_end!
+    @http = EventMachine::Protocols::HttpClient.
+      request(
+              :host => @args[:server],
+              :port => @args[:port],
+              :request => @args[:path],
+              :cookie => @args[:cookie]['Cookie']
+              )
+    @machine.connection_count!
+    @http.errback{
+      begin
+      ensure
+        @machine.connection_end!
+      end
+    }
+
+    @http.callback {|response|
+      begin
+        if response[:status] == 200
+          # 200 はレスポンスの中身を保存する
+          save_content(response[:content])
+        elsif response[:status] == 503 ||
+            response[:status] == 500 ||
+            response[:status] == 403
+          # 503/500/403はリトライする
+          @args[:try] += 1
+          @machine.retry(self) if @args[:try] < 6
+        elsif response[:status] == 404
+          # 404は終了する
+        else 
+          puts response[:status].to_s.red.bold
+          puts response[:headers].to_s.red.bold
         end
-      }
-
-      @http.callback {|response|
-        begin
-          if response[:status] == 200
-            # 200 はレスポンスの中身を保存する
-            save_content(response[:content])
-          elsif response[:status] == 503 ||
-              response[:status] == 500 ||
-              response[:status] == 403
-            # 503/500/403はリトライする
-            @args[:try] += 1
-            @machine.retry(self) if @args[:try] < 6
-          elsif response[:status] == 404
-            # 404は終了する
-          else 
-            puts response[:status].to_s.red.bold
-            puts response[:headers].to_s.red.bold
-          end
-        ensure
-          @machine.connection_end!
-        end
-      }
+      ensure
+        @machine.connection_end!
+      end
+    }
   end
 end
 

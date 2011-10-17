@@ -129,6 +129,61 @@ class MyEventMachineDojin
 
 end
 
+class MyMachineAnime44
+  include MyMachine
+
+  attr_reader :savedir
+  
+  def initialize(args={ })
+    require 'eventmachine'
+    super(args)
+    args[:savedir] ||= "#{ENV['HOME']}/Desktop/video"
+    @savedir = args[:savedir]
+    begin
+      Dir::mkdir(@savedir, 0777)
+    rescue => ex
+      warn ex
+    end
+    @args = args
+    @args[:recursive] ||= 2
+    @gaman = 0;
+  end
+
+  # machine go to run eventmachine
+  def go
+    EM.run do
+      EM.add_periodic_timer(0.00001) do
+#        print "loop".green
+        if should_stop_machine?
+          EM.stop
+        end
+        @queue.pop.run unless @queue.empty?
+      end
+    end
+    puts "End of fetch".green.bold
+  end
+  
+  # setup jobs
+  def setupjobs
+      ajob = MyJobAnime44
+        .new(
+             :machine => self,
+             :recursive => @args[:recursive],
+             :debug => @debug,
+             )
+    @queue.push ajob
+  end
+  
+  # Machineは終了すべきか？
+  def should_stop_machine?
+    @gaman += 1  if @queue.size < 3
+    if @gaman > 1000
+      return true
+    end
+  end
+end  
+
+
 # 
 # Class of Machine by EventMachine.
 # this class controll jobs for Anisoku
@@ -167,7 +222,7 @@ class MyMachineAnisoku
     @args = args
     @args[:limit] ||= 7
     @args[:recent] ||= 7
-    
+    @args[:mode]   ||= :anisoku
     make_filelist
     make_dellist
   end
@@ -267,6 +322,15 @@ class MyMachineAnisoku
            :recent => @args[:recent],
            :debug => @debug,
            )
+    if @args[:mode] == :anime44
+      ajob = MyJobAnime44
+        .new(
+             :machine => self,
+             :limit => @args[:limit],
+             :recent => @args[:recent],
+             :debug => @debug,
+             )
+    end
     @queue.push ajob
   end
 
