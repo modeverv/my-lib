@@ -19,7 +19,7 @@ class MyJobAnime44
     @agent.get @a[:url]
     #    p @agent.page
     @agent.page.search('table')[1].css('td li')
-    targs =  @agent.page.search('table')[1].css('td li').select {|ne| ne.text =~ /\(Raw\)/ }
+    targs =  @agent.page.search('table')[1].css('td li')# .select {|ne| ne.text =~ /\(Raw\)/ }
     a_s = []
     targs.each {|ne| a_s << ne.css('a').map{|e|e[:href]}[0]}
     a_s.each do |link|
@@ -44,22 +44,23 @@ class MyJobAnime44
     @title = @agent.page.title
 
     flg = false
-    
-    daily_embeds_links = @agent.page.search('embed[@src^="http://www.daily"]').map {|ne| ne[:src] }
-    
-    unless daily_embeds_links[0].nil?
-      uri = daily_src2hqurl(daily_embeds_links[0])
-      if uri[:status] == :ok
-        flg = true
-        job = MyJobAnime44.new(
-                               @a.merge({
-                                          :url => uri[:url],
-                                          :title => @title,
-                                          :status => :anime44_fetch}))
-        @a[:machine].retry job
-      end
+
+    videozer_embeds_links = @agent.page.search('embed[@src^="http://www.videozer"]').map {|ne| ne[:src] }
+    unless videozer_embeds_links[0].nil?
+      flg = true
+      url1 = videozer_embeds_links[0].gsub('http://www.videozer.com/embed/','http://video195.videozer.com/video?v=')
+      url = "#{url1}&r=1&t=#{Time.new.to_i.to_s}&u=&start=0"
+      job = MyJobAnime44.new(
+                             @a.merge({
+                                        :url => url,
+                                        :title => @title,
+                                        :status => :anime44_fetch}))
+      @a[:machine].retry job
     end
 
+
+    
+    
     unless flg == true
       begin
         @agent.get @a[:url]
@@ -69,20 +70,20 @@ class MyJobAnime44
         return 
       end
       
-      videozer_embeds_links = @agent.page.search('embed[@src^="http://www.videozer"]').map {|ne| ne[:src] }
-      unless videozer_embeds_links[0].nil?
-        flg = true
-        url1 = videozer_embeds_links[0].gsub('http://www.videozer.com/embed/','http://video195.videozer.com/video?v=')
-        url = "#{url1}&r=1&t=#{Time.new.to_i.to_s}&u=&start=0"
-        job = MyJobAnime44.new(
-                               @a.merge({
-                                          :url => url,
-                                          :title => @title,
-                                          :status => :anime44_fetch}))
-        @a[:machine].retry job
+      daily_embeds_links = @agent.page.search('embed[@src^="http://www.daily"]').map {|ne| ne[:src] }
+      unless daily_embeds_links[0].nil?
+        uri = daily_src2hqurl(daily_embeds_links[0])
+        if uri[:status] == :ok
+          flg = true
+          job = MyJobAnime44.new(
+                                 @a.merge({
+                                            :url => uri[:url],
+                                            :title => @title,
+                                            :status => :anime44_fetch}))
+          @a[:machine].retry job
+        end
       end
     end
-    
     
     begin
       if @a[:recursive] > 0
