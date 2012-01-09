@@ -49,7 +49,7 @@ pkg
 
 # For Test
 lib-test.rb
-1.rb
+lib/1.rb
 dev.rb
 /lib/my-lib_flymake.rb
-/Guardfile
+Guardfile

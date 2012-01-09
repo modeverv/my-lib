@@ -58,9 +58,6 @@ class MyJobAnime44
       @a[:machine].retry job
     end
 
-
-    
-    
     unless flg == true
       begin
         @agent.get @a[:url]
@@ -398,6 +395,203 @@ class MyJobAnisoku
     end
   end
 end
+
+
+
+class MyJobAnisoku2
+
+  def initialize(args = { })
+    require 'rubygems'
+    require 'kconv'
+    require 'mechanize'
+    require 'net/http'
+    @a = args
+    @debug = args[:debug] ||= false
+    @a[:url] ||= 'http://youtubeanisoku1.blog106.fc2.com/'
+    @a[:url] = URI.parse @a[:url] unless @a[:url].class == URI::HTTP
+    @agent = Mechanize.new
+    @a[:status] ||= :tokkakari
+    @a[:recent] ||= 7
+    @a[:limit] ||= 4
+    @FC2magick = @a[:fc2magick] ||='_gGddgPfeaf_gzyr'  #updated FC2 2011.7
+    raise "job have no machine error"  unless @a[:machine]
+  end
+
+  # check kousin page
+  def tokkakari
+    print "Tokkakari".yellow 
+    @agent.get @a[:url]
+    links_kousins = @agent.page.links_with(:text => /#{"更新状況"}/).map(&:uri)
+    links_kousins.each_with_index do |link,i|
+      break if i >= @a[:recent]
+      job = MyJobAnisoku2.new(@a.merge({ :url => link,:status => :second, }) )
+      @a[:machine].retry job
+    end
+  end
+
+  # check shoukai page
+  def second
+    print "Second".yellow
+    @agent.get @a[:url]
+    links_kousin =  @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/ul/li/a/@href"
+    links_kobetu = []
+    links_kousin.each do |link|
+      links_kobetu << $1  if link.value =~ /(http:\/\/youtubeanisoku.*)/
+    end
+    # make job for each links_kobetu
+    links_kobetu.each do |link|
+      job = MyJobAnisoku2.new(@a.merge({:url => link,:status => :kobetu}))
+      @a[:machine].retry job
+    end
+  end
+
+  #access say-move and make video job
+  def kobetu
+    print "Kobetu".yellow
+    @agent.get @a[:url]
+    title = @agent.page.title.gsub(' ★ You Tube アニ速 ★','')
+    # acume url
+    htmlA = @agent.page/"/html/body/table/tr[2]/td/table/tr/td[2]/div[4]/div[@class='kijisub']"
+    require 'pp'
+    targsHTMLs = htmlA.inner_html.toutf8.split(/ランキング/)[0].split(/\n第/).reverse!
+    #http://posterous.com/getfile/files.posterous.com/temp-2011-08-21/eolunzlwwwFopCnhszaBwJlFEJEnHcloqkoyaFuhdezmdgipcyyiyzdpqcpG/cro08nyoutube.doc
+    require 'digest' 
+    targsHTMLs.each_with_index do |html,i|
+      break if i >= @a[:limit]
+      key = title + html.to_s
+      unless @a[:machine].episode_exists?( Digest::MD5.hexdigest(key)  )
+        indi = Nokogiri::HTML.fragment(html).css("a")
+        indi.each do |va|
+          p va[:href] if @debug
+          if va[:href] =~ /(http:\/\/say-move\.org\/comeplay\.php.*)/
+            job = MyJobAnisoku2.new(
+                                   @a.merge({
+                                              :url => $1,
+                                              :title => title + '第' + html.split('<').first.gsub(' ','').gsub('　',''),
+                                              :status => :third}))
+            @a[:machine].retry job
+          end
+        end
+      else
+        puts "ALREADY REGISTED CANCELL FETCH".cyan.bold + html[0..20].yellow.bold if @debug
+      end
+      key = nil
+    end
+  end
+
+  #access say-move and make video job
+  def third
+    print "Third".yellow
+    sm = { :title => @a[:title],:url => @a[:url]}
+    @agent.get(sm[:url])
+    sm[:title] += @agent.page.title.gsub!('FC2 SayMove!','') 
+    set =  @agent.page/"/html/body/div/div[2]/div[7]/div[2]/input/@value"
+    if !set.empty?
+      sm[:videourl] = set[0].value 
+    else
+      set =  @agent.page/"/html/body/div/div[2]/div[3]/object/param[5]/@value"
+      fc2 = set[0].value.split('&')[1].split('=')[1]
+      unless fc2.nil?
+        p sm[:url] if @debug
+        job = MyJobAnisoku2.new(
+                               @a.merge({
+                                          :url => sm[:url],
+                                          :fc2 => fc2,
+                                          :title => sm[:title],
+                                          :status => :fc2
+                                        }))
+        @a[:machine].retry job
+        return
+      else
+      end
+    end
+    
+    job = MyJobAnisoku2.new(
+                           @a.merge({
+                                      :url => sm[:videourl],
+                                      :title => sm[:title],
+                                      :status => :video
+                                    }))
+    @a[:machine].retry job
+  end
+
+  def fc2
+    print "fc2".yellow
+    require 'digest'
+    url = "http://video.fc2.com/ginfo.php?mimi=#{Digest::MD5.hexdigest(@a[:fc2] + @FC2magick)}&v=#{@a[:fc2]}&upid=#{@a[:fc2]}&otag=1"
+    url = `curl -# -L -R "#{url} "`
+    url =  url.split('&')[0].split('=')[1] + '?' + url.split('&')[1]
+    puts url.red.bold
+    job = MyJobAnisoku2.new(
+                           @a.merge({
+                                      :url => url,
+                                      :status => :video
+                                    }))
+    @a[:machine].retry job
+  end
+
+  #fetch video
+  def video
+    print "video".yellow
+    # save video directory is supplied by machine.
+    savedir = @a[:machine].savedir
+    Dir.chdir savedir
+    filename = "#{@a[:title].gsub(' ','').gsub('　','')}.mp4"
+    savepath = "#{savedir}/#{filename}"
+    # check fetch candidate had been already saved?
+    if File.exist?(savepath) && File.size(savepath) > 1024 * 1024 * 3
+      puts "File Already Saved ".yellow.bold  + savepath
+      return
+    else
+      puts "Fetching ".green.bold + savepath
+      MyLogger.ln "Fetch Attempt Start ".green.bold  + savepath
+    end
+
+    # use curl command
+    # no need UA...
+    uri = "http://#{@a[:url].host}#{@a[:url].path}"
+    uri += "?#{@a[:url].query}" if @a[:url].query
+    command = "curl -# -L -R -o '#{filename}' '#{uri}' >/dev/null 2>&1"
+    #    command += "&& growlnotify -t '#{filename}' -m '#{uri}' "
+
+    puts command if @debug
+    system command unless @debug
+  end
+
+  # run in thread
+  def run
+    t = Thread.new do
+      send @a[:status]
+    end
+  end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class MyJobDojin

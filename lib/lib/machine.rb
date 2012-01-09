@@ -291,7 +291,7 @@ class MyMachineAnisoku
   def go
     EM.run do
       EM.add_periodic_timer(0.00001) do
-#        print "loop".green
+        print "loop".green
         if should_stop_machine?
           finalize_files
           EM.stop
@@ -315,15 +315,24 @@ class MyMachineAnisoku
 
   # setup jobs
   def setupjobs
-    ajob = MyJobAnisoku
-      .new(
-           :machine => self,
-           :limit => @args[:limit],
-           :recent => @args[:recent],
-           :debug => @debug,
-           )
     if @args[:mode] == :anime44
       ajob = MyJobAnime44
+        .new(
+             :machine => self,
+             :limit => @args[:limit],
+             :recent => @args[:recent],
+             :debug => @debug,
+             )
+    elsif @args[:mode] == :second
+      ajob = MyJobAnime44
+        .new(
+             :machine => self,
+             :limit => @args[:limit],
+             :recent => @args[:recent],
+             :debug => @debug,
+             )
+    else
+      ajob = MyJobAnisoku2
         .new(
              :machine => self,
              :limit => @args[:limit],
